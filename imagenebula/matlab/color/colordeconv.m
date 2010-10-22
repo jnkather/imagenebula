@@ -7,12 +7,12 @@ function [iA, iS, iAS, iR, dA, dS, dAS, dR] = ...
 % image I into NSTAINS stain channels by using the non-negative matrix
 % factorization.
 %
-% Input:
+% INPUTS:
 %	I: the input multi-channel image
 %	NSTAINS: number of stains
 %	VARARGIN: optional parameters
 %
-% Output:
+% OUTPUTS:
 %	IA: (H * W * NSTAINS) matrix representing the amount of stains in 
 %	intensity.
 %	IS: (NSTAINS * NCHANNELS) matrix representing the absorbance factor of each 
@@ -56,7 +56,7 @@ function [iA, iS, iAS, iR, dA, dS, dAS, dR] = ...
 % along with this program.  If not, see
 % <http://www.gnu.org/licenses/>.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
 	%% check arguments
     
