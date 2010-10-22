@@ -7,27 +7,28 @@ function [iA, iS, iAS, iR, dA, dS, dAS, dR] = ...
 % image I into NSTAINS stain channels by using the non-negative matrix
 % factorization.
 %
-% INPUTS:
-%	I: the input multi-channel image
-%	NSTAINS: number of stains
-%	VARARGIN: optional parameters
+% INPUTS
+%	I			- the input multi-channel image
+%	NSTAINS		- number of stains
+%	VARARGIN	- optional parameters
 %
-% OUTPUTS:
-%	IA: (H * W * NSTAINS) matrix representing the amount of stains in 
+% OUTPUTS
+%	IA		- (H * W * NSTAINS) matrix representing the amount of stains in 
 %	intensity.
-%	IS: (NSTAINS * NCHANNELS) matrix representing the absorbance factor of each 
-%	channel for each stain in intensity.
-%	IAS: (NSTAINS * 1) cell, each element of which is a matrix reprensenting the
-%	multi-channel image of the corresponding stain.
-%	IR: matrix with the same size of the input image, representing the residual
-%	intensity image of the color deconvolution.
-%	DA: (H * W * NSTAINS) matrix representing the amount of stains in density.
-%	DS: (NSTAINS * NCHANNELS) matrix representing the absorbance factor of each 
-%	channel for each stain in density.
-%	DAS: (NSTAINS * 1) cell, each element of which is a matrix reprensenting the
-%	multi-channel image of the corresponding stain.
-%	DR: matrix with the same size of the input image, representing the residual
-%	density image of the color deconvolution.
+%	IS		- (NSTAINS * NCHANNELS) matrix representing the absorbance factor of
+%	each channel for each stain in intensity.
+%	IAS		- (NSTAINS * 1) cell, each element of which is a matrix
+%	reprensenting the multi-channel image of the corresponding stain.
+%	IR		- matrix with the same size of the input image, representing the
+%	residual intensity image of the color deconvolution.
+%	DA		- (H * W * NSTAINS) matrix representing the amount of stains in
+%	density.
+%	DS		- (NSTAINS * NCHANNELS) matrix representing the absorbance factor of
+%	each channel for each stain in density.
+%	DAS		- (NSTAINS * 1) cell, each element of which is a matrix
+%	reprensenting the multi-channel image of the corresponding stain.
+%	DR		- matrix with the same size of the input image, representing the
+%	residual density image of the color deconvolution.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
