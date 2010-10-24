@@ -14,15 +14,46 @@ im = imread('image.png');
 %% Parameters
 norients = 6;
 startsigma = 0.5;
-nscales = 9;
+nscales = 7;
 scalingstep = 1.2;
 elong = 3;
 ntexton = 32;
 
 %% Calcualte the filter bank outputs
 fb = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
+fbo = filterapply(im, fb);
 
-[tmap,tex] = computeTextons(fbRun(fb,im),ntex);
+%% 
+[tmap,tex] = computeTextons(fbo,ntex);
+[tim,tperm] = visTextons(tex,fb);
+wt = zeros(ntex,1);
+for i = 1:ntex,
+  wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
+end
+%% Calcualte the filter bank outpu
+  wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
+end
+%% Calcualte the filter bank outputs
+fb = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
+fbo = filterapply(im, fb);
+
+
+[tmap,tex] = computeTextons(fbo,ntex);
+[tim,tperm] = visTextons(tex,fb);
+wt = zeros(ntex,1);
+for i = 1:ntex,
+  wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
+end
+wt = wt / max(wt(:));
+tsim = zeros(ntex);
+wt = wt / max(wt(:));
+tsim = zeros(ntex);
+%% Calcualte the filter bank outputs
+fb = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
+fbo = filterapply(im, fb);
+
+
+[tmap,tex] = computeTextons(fbo,ntex);
 [tim,tperm] = visTextons(tex,fb);
 wt = zeros(ntex,1);
 for i = 1:ntex,

@@ -132,7 +132,7 @@ for iscale = 1 : nscales,
 		scales(iscale, :) = scale;
 		
 		% filter bank kernels
-		fb{1, iscale, iorient} = oeFilter(scale, support, theta, 2, 0);	% even
-		fb{2, iscale, iorient} = oeFilter(scale, support, theta, 2, 1);	% odd
+		fb{1, iscale, iorient} = filteroe(scale, support, theta, 2, 0);	% even
+		fb{2, iscale, iorient} = filteroe(scale, support, theta, 2, 1);	% odd
 	end
 end
