@@ -9,7 +9,7 @@
 % outputs in the orientations in [0, pi]. 
 
 %% Reading the RGB image
-im = imread('image.png');
+im = imread('part.png');
 
 %% Parameters
 norients = 6;
@@ -20,19 +20,18 @@ elong = 3;
 ntexton = 32;
 
 %% Calcualte the filter bank outputs
-fb = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
+[fb, thetas, scales] = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
 fbo = filterapply(im, fb);
+fbo = cell2mat1d(fbo);
 
-%% 
-[tmap,tex] = computeTextons(fbo,ntex);
+%% Train the texton image
+[tmap, tex] = textonscompute(fbo, ntexton);
 [tim,tperm] = visTextons(tex,fb);
 wt = zeros(ntex,1);
 for i = 1:ntex,
   wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
 end
-%% Calcualte the filter bank outpu
-  wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
-end
+
 %% Calcualte the filter bank outputs
 fb = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
 fbo = filterapply(im, fb);
