@@ -15,7 +15,7 @@ im = double(im);
 norients = 12;
 startsigma = 0.5;
 nscales = 7;
-scalingstep = 1.2;
+scalingstep = 1.3;
 elong = 3;
 ntexton = 16;
 

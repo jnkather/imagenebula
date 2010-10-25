@@ -15,16 +15,16 @@ im = double(im) / 255;
 im = log(1) - log(im); % comment this line to train textons on density image
 
 %% Parameters
-norients = 6;
+norients = 12;
 startsigma = 0.5;
 nscales = 7;
-scalingstep = 1.2;
+scalingstep = 1.3;
 elong = 3;
-ntexton = 8;
+ntexton = 16;
 
 %% Calcualte the filter bank outputs
 [fb, thetas, scales] = filterbankoe(norients, startsigma, nscales, ...
-    scalingstep, elong);
+    scalingstep, elong, [0, 2*pi]);
 fbo = filterapply(im, fb);
 fbo = cell2matnd(fbo);
 

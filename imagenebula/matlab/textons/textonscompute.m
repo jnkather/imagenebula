@@ -69,6 +69,7 @@ nim = prod(sizeim);        	% number of pixels
 sizef = sizefim(d+1:end);   % size of the feature
 nf = prod(sizef);           % number of features
 fm = reshape(fim, nim, nf); % reshape
+clear fim;
 
 %% K-means clustering
 %[map, textons] = kmeans(fm, k); $ for matlab function
