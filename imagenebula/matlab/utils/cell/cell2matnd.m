@@ -1,20 +1,21 @@
-function m = cell2mat1d(c)
-% CELL2MAT1D Convert a cell of matrices into a matrix with one additional dimension.
-% [M] = CELL2MAT1D(C)
+function m = cell2matnd(c)
+% CELL2MATND Convert a cell of matrices into a matrix with N additional dimension.
+% [M] = CELL2MATND(C)
 % 
-% Convert a cell of matrices of the same sizes into a matrix with one
-% additional dimension. For example, if C is a cell with P elements, each
+% Convert a cell of matrices of the same sizes into a matrix with N
+% additional dimension, where N indicates the dimension of the cell C. For 
+% example, if C is a cell of the size P*Q, each
 % of which is a matrix of the size M*N, then M is a matrix of the size
-% M*N*P.
+% M*N*P*Q.
 %
 %
 % INPUTS
 %	C	- Cell of matrices of the same sizes.
 %
 % OUTPUTS
-%	M	- Matrix with one additional dimension converted from the cell C.
+%	M	- Matrix with N additional dimension converted from the cell C.
 %
-% See also CELL2MATND, CELL2MAT, RESHAPE
+% See also CELL2MAT1D, CELL2MAT, RESHAPE
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,14 +47,17 @@ function m = cell2mat1d(c)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
-
+%% Size and number
+sizecell = size(c);
 ncell = numel(c);
-nmat = numel(c{1});
 sizemat = size(c{1});
-m = zeros(nmat, ncell);
+nmat = numel(c{1});
 
+%% Convert to matrix of the size (N*M) * (P*Q)
+m = zeros(nmat, ncell);
 for i = 1 : ncell,
     m(:, i) = reshape(c{i}, nmat, 1);
 end
 
-m = reshape(m, [sizemat, ncell]);
+%% Reshape to N*M*P*Q
+m = reshape(m, [sizemat, sizecell]);

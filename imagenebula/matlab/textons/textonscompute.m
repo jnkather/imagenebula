@@ -1,6 +1,6 @@
-function [map, textons] = textonscompute(fim, k)
+function [map, textons] = textonscompute(fim, k, d)
 % TEXTONSCOMPUTE Compute textons of a given image.
-% [MAP, TEXTONS] = TEXTONSCOMPUTE(FIM, K)
+% [MAP, TEXTONS] = TEXTONSCOMPUTE(FIM, K, D)
 %
 % Compute textons of a given image by clustering image pixels into K groups 
 % (textons) using the k-means algorithm. FIM is the image features of each
@@ -11,6 +11,9 @@ function [map, textons] = textonscompute(fim, k)
 %       is the height and width of the image, and the rest dimensions are
 %       feature indcies.
 %   K   - Number of textons.    
+%   [D] - Dimension of the image. Default is 2, which means the first two
+%       dimensions index the image, while the rest dimensions index
+%       features.
 %
 % OUTPUTS
 %	MAP	- Texton map of the image. The size of MAP is (HEIGHT * WIDTH),
@@ -55,25 +58,27 @@ if ndims(fim) <= 3,
     error('textonscompute:InputDimensionError', ...
         'The input feature image should has a dimension no less than 3.');
 end
+if nargin < 3, d = 2; end;
 
 %% Reshape 
 % Reshape the image into a feature matrix, with each row indicating the feature
 % vector of a pixel
-fimsize = size(fim);
-fsize = fimsize(3:end);
-h = fimsize(1);
-w = fimsize(2);
-npixels = h * w;
-nfeatures = numel(fim) / npixels;
-fm = reshape(fim, npixels, nfeatures);
+sizefim = size(fim);        % size of the feature image
+sizeim = sizefim(1:d);      % size of the image
+nim = prod(sizeim);        	% number of pixels
+sizef = sizefim(d+1:end);   % size of the feature
+nf = prod(sizef);           % number of features
+fm = reshape(fim, nim, nf); % reshape
 
 %% K-means clustering
-%[map, textons] = kmeans(fm, k);
-[map, textons] = kmeansML(k, fm', 'maxiter', 30, 'verbose', 1);
+%[map, textons] = kmeans(fm, k); $ for matlab function
+%[textons, map] = kmeans(fm, k);  % for fast kmeans
+[map, textons] = kmeansML(k, fm', 'maxiter', 30, 'verbose', 1); % for
+%kmeansML
 
 %% Reshape
 % Reshape the map to (HEIGHT * WIDTH) and reshape the
-map = reshape(map, h, w);
-textons = reshape(textons, [k, fsize]);
+map = reshape(map, sizeim);
+textons = reshape(textons, [k, sizef]);
 
 

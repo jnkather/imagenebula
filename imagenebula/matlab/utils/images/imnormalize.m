@@ -79,7 +79,7 @@ end
 if nDims == 3
 	nChannels = sizeI(3);
 	for iChannels = 1 : nChannels
-		I(:, :, iChannels) = imnormalize(iChannels, flag);
+		I(:, :, iChannels) = imnormalize(I(:, :, iChannels), flag);
 	end
 end
 

@@ -20,87 +20,15 @@ elong = 3;
 ntexton = 32;
 
 %% Calcualte the filter bank outputs
-[fb, thetas, scales] = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
+[fb, thetas, scales] = filterbankoe(norients, startsigma, nscales, ...
+    scalingstep, elong);
 fbo = filterapply(im, fb);
-fbo = cell2mat1d(fbo);
+fbo = cell2matnd(fbo);
 
 %% Train the texton image
-[tmap, tex] = textonscompute(fbo, ntexton);
-[tim,tperm] = visTextons(tex,fb);
-wt = zeros(ntex,1);
-for i = 1:ntex,
-  wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
-end
+[tmap, textons] = textonscompute(fbo, ntexton);
+figure(1), imagesc(tmap);
 
-%% Calcualte the filter bank outputs
-fb = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
-fbo = filterapply(im, fb);
+%% Visualize the Textons
+[tim, tperm] = textonsvisualize(textons, fb);
 
-
-[tmap,tex] = computeTextons(fbo,ntex);
-[tim,tperm] = visTextons(tex,fb);
-wt = zeros(ntex,1);
-for i = 1:ntex,
-  wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
-end
-wt = wt / max(wt(:));
-tsim = zeros(ntex);
-wt = wt / max(wt(:));
-tsim = zeros(ntex);
-%% Calcualte the filter bank outputs
-fb = filterbankoe(norients, startsigma, nscales, scalingstep, elong);
-fbo = filterapply(im, fb);
-
-
-[tmap,tex] = computeTextons(fbo,ntex);
-[tim,tperm] = visTextons(tex,fb);
-wt = zeros(ntex,1);
-for i = 1:ntex,
-  wt(i) = sum(abs(tim{i}(:))); % L1 norm of texton
-end
-wt = wt / max(wt(:));
-tsim = zeros(ntex);
-for i = 1:ntex,
-  for j = 1:ntex,
-    tsim(i,j) = sum(sum(abs(tim{i}-tim{j})));
-  end
-end
-r = 10;
-norient = 6;
-tic; [tg,theta] = tgmo(tmap,ntex,r,norient,tsim); toc;
-aa = cell(size(tg));
-bb = cell(size(tg));
-cc = cell(size(tg));
-for i = 1:numel(tg),
-  tic; [c,b,a] = fitparab(tg{i},r,theta(i)); toc;
-  aa{i}=a; bb{i}=b; cc{i}=c;
-end
-tgs = cell(size(tg));
-pb = zeros(size(tmap));
-for i = 1:numel(tgs),
-  tgs{i} = max(0,cc{i}) .* (aa{i}<0) .* exp(-abs(bb{i})/0.1);
-  pb = max(pb,tgs{i});
-end
-pb2 = zeros(size(tmap));
-for i = 1:numel(tgs),
-  pb2 = max(pb2,(tgs{i}==pb).*nonmax(tgs{i},theta(i)));
-end
-
-figure(1); clf;
-imshow(im);
-
-figure(2); clf;
-imagesc(mymontage({tim{tperm}}));
-axis image; colorbar;
-
-figure(3); clf;
-imagesc(tmap);
-truesize;
-
-figure(4); clf;
-imagesc(pb);
-truesize;
-
-figure(5); clf;
-imagesc(pb2)
-truesize;
