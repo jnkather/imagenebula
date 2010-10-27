@@ -195,7 +195,7 @@ f = reshape(f, filtersize, filtersize);
 
 % zero mean
 if derivative>0,
-  f = f - mean(f(:));
+	f = f - mean(f(:));
 end
 
 % unit L1-norm
