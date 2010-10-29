@@ -155,10 +155,6 @@ sv = ru * cos(theta) - rv * sin(theta);
 % Bin membership for 2D grid points.
 mx = round(su) + halfsize + 1;
 my = round(sv) + halfsize + 1;
-mx(mx < 1) = 1;
-my(mx < 1) = 1;
-my(my < 1) = 1;
-mx(my < 1) = 1;
 mask = (mx >= 1) & (my >= 1) & (mx <= filtersize) & (my <= filtersize);
 membership(mask) = (mx(mask)) + (my(mask) - 1) * filtersize;
 

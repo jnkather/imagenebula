@@ -86,9 +86,9 @@ function [v] = filterapplysp(im, f, location, varargin)
 
 %% Filtering the image
 if (iscell(f))
-    v = zeros(size(f), 1);
+    v = zeros(size(f));
     for i = 1 : numel(f)
-        v(i) = filterapplyp(im, f{i}, boundary, output, do_fcn);
+        v(i) = filterapplysp(im, f{i}, location, boundary, output, do_fcn);
     end
 else
     %fim = imfilter(im, f, boundary, output, do_fcn);
