@@ -1,7 +1,8 @@
-function [f] = filteroe(sigma, support, theta, derivative, dohilbert, visual)
+function [f] = filteroearc(...
+	sigma, r, support, theta, derivative, dohilbert, visual)
 %FILTEROE compute the oriented energy filter kernel with the specified scale and
 %angle
-%[F] = FILTEROE(SIGMA, SUPPORT, THETA, DERIVATIVE, DOHILBERT, VISUAL)
+%[F] = FILTEROEARC(SIGMA, R, SUPPORT, THETA, DERIVATIVE, DOHILBERT, VISUAL)
 %
 % compute the oriented energy (OE) filter kernel with the specified scaling
 % parameter SIGMA and rotation orientations (THETA).
@@ -14,6 +15,7 @@ function [f] = filteroe(sigma, support, theta, derivative, dohilbert, visual)
 %	SIGMA		- The scale parameters in X and Y direction of the gaussian
 %	filters. Scalar if SIGMA is the same in both directions, or 2-element vector
 %	of [SIGMAX, SIGMAY].
+%	R			- Radius of the filter
 %	[SUPPORT]	- The half size of the filter is determined by SUPPORT*SIGMA. In
 %	fact, the half size of the filter is MAX(CEIL(SUPPORT * SIGMA)). Default is 
 %	3, which means the half size of the filter is about 3 times the maximum of 
@@ -97,14 +99,15 @@ function [f] = filteroe(sigma, support, theta, derivative, dohilbert, visual)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
 %% Arguments and option processing
-error(nargchk(1, 6, nargin));
+error(nargchk(1, 7, nargin));
 
 % default option
-if nargin<2, support=3; end
-if nargin<3, theta=0; end
-if nargin<4, derivative=0; end
-if nargin<5, dohilbert=0; end
-if nargin<6, visual=0; end
+if nargin<2, r=0; end
+if nargin<3, support=5; end
+if nargin<4, theta=0; end
+if nargin<5, derivative=0; end
+if nargin<6, dohilbert=0; end
+if nargin<7, visual=0; end
 
 % scalar sigma indicating the equal scale in X and Y
 if numel(sigma) == 1,
@@ -124,59 +127,67 @@ halfsize = max(ceil(support * sigma));
 filtersize = halfsize * 2 + 1;
 
 % Sampling limits.
-maxsamples = 1000;	% Max samples in each dimension.
-maxrate = 10;		% Max sampling rate.
-frate = 10;			% Over-sampling rate for function evaluation.
+maxsamples = 5000;	% Max samples in each dimension. 1000
+maxrate = 10;		% Max sampling rate. 10
 
 % Calculate sampling rate and number of samples.
 rate = min(maxrate, max(1, floor(maxsamples/filtersize)));
 nsamples = filtersize * rate;
 
 % The 2D samping grid.
-r = floor(filtersize/2) + 0.5 * (1 - 1/rate);
-dom = linspace(-r, r, nsamples);
+%r = floor(filtersize/2) + 0.5 * (1 - 1/rate);
+gap = filtersize / nsamples;
+radius = gap * (nsamples-1) / 2;
+dom = linspace(-radius, radius, nsamples);
 [sx, sy] = meshgrid(dom, dom);
 
 % Bin membership for 2D grid points.
-mx = round(sx);
-my = round(sy);
-membership = (mx + halfsize + 1) + (my + halfsize) * filtersize;
+mx = round(sx) + halfsize + 1;
+my = round(sy) + halfsize + 1;
+membership = (mx) + (my - 1) * filtersize;
 
 % Rotate the 2D sampling grid by theta.
-su = sx * sin(theta) + sy * cos(theta);
-sv = sx * cos(theta) - sy * sin(theta);
+ru = (sy + r) .* sin(sx ./ (sy + r));
+rv = (sy + r) .* cos(sx ./ (sy + r)) - r;
+su = ru * sin(theta) + rv * cos(theta);
+sv = ru * cos(theta) - rv * sin(theta);
+
+% Bin membership for 2D grid points.
+mx = round(su) + halfsize + 1;
+my = round(sv) + halfsize + 1;
+mx(mx < 1) = 1;
+my(mx < 1) = 1;
+my(my < 1) = 1;
+mx(my < 1) = 1;
+mask = (mx >= 1) & (my >= 1) & (mx <= filtersize) & (my <= filtersize);
+membership(mask) = (mx(mask)) + (my(mask) - 1) * filtersize;
 
 % Visualization for debugging
 if visual,
 	figure(1); clf; hold on;
 	plot(sx, sy, '.');	% plot '.' as the original mesh grid
-	plot(mx, my, 'o');	% plot 'o' as the rounded mesh grid (membership)
+	%plot(mx, my, 'o');	% plot 'o' as the rounded mesh grid (membership)
 	% original mesh grid and its association with the rounded mesh grid
-  	plot([sx(:) mx(:)]', [sy(:) my(:)]', 'k-');	
+  	% plot([sx(:) mx(:)]', [sy(:) my(:)]', 'k-');	
 	plot(su, sv, 'x');	% plot 'x' as the rotated mesh grid
+	% plot([su(:) mx(:)]', [sv(:) my(:)]', 'k-');	
 	axis equal;
-	ginput(1);
+	[x, y] = ginput(1);
+	disp([x, y]);
 end
 
-% Evaluate the function separably on a finer grid.
-maxr = r * sqrt(2) * 1.01;			% maximum radius of domain (diagonal)
-fsamples = ceil(maxr * rate * frate);		% number of samples
-fsamples = fsamples + mod(fsamples+1, 2);	% must be odd
-fdom = linspace(-maxr, maxr, fsamples);		% domain for function evaluation
-gap = 2 * maxr / (fsamples-1);				% distance between samples
-
 % The function is a Gaussian in the x direction...
-fx = exp(- fdom.^2 / (2 * sigma(1)^2));
+fx = exp(- dom.^2 / (2 * sigma(1)^2));
 
 % .. and a Gaussian derivative in the y direction...
-fy = exp(- fdom.^2 / (2 * sigma(2)^2));
+fy = exp(- dom.^2 / (2 * sigma(2)^2));
 switch derivative,
 	case 1,
 		% 1-order derivative
-		fy = fy .* (-fdom / (sigma(2)^2));
+		fy = fy .* (-dom / (sigma(2)^2));
 	case 2,
 		% 2-order derivative
-		fy = fy .* (fdom.^2 / (sigma(2)^2) - 1);
+		fy = fy .* (dom.^2 / (sigma(2)^2) - 1);
 end
 
 % ...with an optional Hilbert transform.
@@ -186,9 +197,9 @@ if dohilbert,
 end
 
 % Evaluate the function with NN interpolation.
-xi = round(su/gap) + floor(fsamples/2) + 1;
-yi = round(sv/gap) + floor(fsamples/2) + 1;
-f = fx(xi) .* fy(yi);
+ix = floor(sx/gap + (halfsize+0.5)*rate + 1);
+iy = floor(sy/gap + (halfsize+0.5)*rate + 1);
+f = fx(ix) .* fy(iy);
 
 % Accumulate the samples into each bin.
 f = indexedsum(f, membership, filtersize*filtersize);
