@@ -147,10 +147,10 @@ my = round(sy) + halfsize + 1;
 membership = (mx) + (my - 1) * filtersize;
 
 % Rotate the 2D sampling grid by theta.
-ru = (sy + r) .* sin(sx ./ (sy + r));
-rv = (sy + r) .* cos(sx ./ (sy + r)) - r;
-su = ru * sin(theta) + rv * cos(theta);
-sv = ru * cos(theta) - rv * sin(theta);
+rv = (sy + r) .* sin(sx ./ (sy + r));
+ru = (sy + r) .* cos(sx ./ (sy + r)) - r;
+su = ru * sin(theta-pi) + rv * cos(theta-pi);
+sv = ru * cos(theta-pi) - rv * sin(theta-pi);
 
 % Bin membership for 2D grid points.
 mx = round(su) + halfsize + 1;
