@@ -1,6 +1,6 @@
-function [fim] = filterapply(im, f, varargin)
-% FILTERAPPLY apply the specified filter to the given image.
-% [FIM] = FILTERAPPLY(IM, F, VARARGIN)
+function [v] = filterapplysp(im, f, location, varargin)
+% FILTERAPPLY apply the specified filter or filter bank to a single pixel.
+% [V] = FILTERAPPLY(IM, F, LOCALTION, VARARGIN)
 % 
 % Apply the specified filter F to the given image IM.
 %
@@ -8,14 +8,17 @@ function [fim] = filterapply(im, f, varargin)
 % INPUTS
 %	IM		- Image
 %	F		- Filter kernel
+%	LOCALTION - 2-element or 3-element vector, indicating the location of
+%		image to apply the filter
 %   VARARGIN- Options when applying the filter, the same as the options in
 %       IMFILTER
 %
 % OUTPUTS
-%	FIM     - Filtered image
+%	V		- Filtered value
 %
-% See also IMFILTER, FILTEROE, FILTERBANKOE
+% See also FILTERAPPLY, IMFILTER, FILTEROE, FILTERBANKOE
 %
+
 %
 % References:
 %   * Malik2001CTA@IJCV
@@ -83,12 +86,20 @@ function [fim] = filterapply(im, f, varargin)
 
 %% Filtering the image
 if (iscell(f))
-    fim = cell(size(f));
-    for i = 1 : numel(fim)
-        fim{i} = imfilter(im, f{i}, boundary, output, do_fcn);
+    v = zeros(size(f));
+    for i = 1 : numel(f)
+        v(i) = filterapplysp(im, f{i}, location, boundary, output, do_fcn);
     end
 else
-    fim = imfilter(im, f, boundary, output, do_fcn);
+    %fim = imfilter(im, f, boundary, output, do_fcn);
+	sizef = size(f);
+	halfsizef = floor(sizef / 2);
+	startlocation = location - halfsizef;
+	endlocation = location + halfsizef;
+	impatch = im(startlocation(1):endlocation(1), ...
+		startlocation(2):endlocation(2));
+	fim = impatch .* f;
+	v = sum(fim(:));
 end
 
 
