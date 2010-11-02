@@ -63,7 +63,7 @@ function [f] = filteroearc(...
 %       Pattern Recognition Letters vol. 6, pp. 303-313, 1987.
 %   * Morrone1988
 %       M. Morrone, D. Burr
-%       Feature Dection in Human Vision: A Phase Dependent Energy Model,
+%       Feature Detection in Human Vision: A Phase Dependent Energy Model,
 %       In: Proc. R. Soc. Lond. B vol.235, pp.212-245.
 %
 
@@ -128,7 +128,7 @@ filtersize = halfsize * 2 + 1;
 
 % Sampling limits.
 maxsamples = 5000;	% Max samples in each dimension. 1000
-maxrate = 10;		% Max sampling rate. 10
+maxrate = 50;		% Max sampling rate. 10
 
 % Calculate sampling rate and number of samples.
 rate = min(maxrate, max(1, floor(maxsamples/filtersize)));
@@ -142,21 +142,26 @@ dom = linspace(-radius, radius, nsamples);
 [sx, sy] = meshgrid(dom, dom);
 
 % Bin membership for 2D grid points.
-mx = round(sx) + halfsize + 1;
-my = round(sy) + halfsize + 1;
-membership = (mx) + (my - 1) * filtersize;
+% mx = round(sx) + halfsize + 1;
+% my = round(sy) + halfsize + 1;
+% membership = (mx) + (my - 1) * filtersize;
 
 % Rotate the 2D sampling grid by theta.
 rv = (sy + r) .* sin(sx ./ (sy + r));
 ru = (sy + r) .* cos(sx ./ (sy + r)) - r;
-su = ru * sin(theta-pi) + rv * cos(theta-pi);
-sv = ru * cos(theta-pi) - rv * sin(theta-pi);
+if ~visual, clear sx sy; end;
+su = ru * sin(pi-theta) + rv * cos(pi-theta);
+sv = ru * cos(pi-theta) - rv * sin(pi-theta);
+if ~visual, clear rv ru; end;
 
 % Bin membership for 2D grid points.
 mx = round(su) + halfsize + 1;
 my = round(sv) + halfsize + 1;
+if ~visual, clear sv su; end;
+membership = (mx) + (my - 1) * filtersize;
 mask = (mx >= 1) & (my >= 1) & (mx <= filtersize) & (my <= filtersize);
 membership(mask) = (mx(mask)) + (my(mask) - 1) * filtersize;
+if ~visual, clear mx my; end;
 
 % Visualization for debugging
 if visual,
@@ -193,12 +198,16 @@ if dohilbert,
 end
 
 % Evaluate the function with NN interpolation.
+[sx, sy] = meshgrid(dom, dom);
 ix = floor(sx/gap + (halfsize+0.5)*rate + 1);
 iy = floor(sy/gap + (halfsize+0.5)*rate + 1);
+clear sx sy;
 f = fx(ix) .* fy(iy);
+clear ix iy;
 
 % Accumulate the samples into each bin.
 f = indexedsum(f, membership, filtersize*filtersize);
+clear membership;
 f = reshape(f, filtersize, filtersize);
 
 % zero mean
