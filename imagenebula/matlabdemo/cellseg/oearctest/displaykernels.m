@@ -9,13 +9,13 @@ scale = 1;
 radius = 10;
 support = 5;
 derivative = 2;
-hilbert = 1;
+hilbert = 0;
 
 f = cell(norientations, 1);
 figure(1);
 for i = 1 : norientations
 	theta = 2 * pi / norientations * (i - 1);
-	f{i} = filteroearc([scale*elong, scale], radius, support, theta, ...
+	f{i} = filteroearccache([scale*elong, scale], radius, support, theta, ...
 		derivative, hilbert);
 	subplot(4, 6, i); imshow(f{i}, []);
 	fprintf('Construct kernel %d\n', i);
