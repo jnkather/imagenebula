@@ -2,8 +2,8 @@
 % scales on the whole image
 
 clear
-im = imread('H.png');
-%im = imread('circle15.png');
+%im = imread('H.png');
+im = imread('circle15.png');
 im = double(im) / 255;
 
 ntheta = 36;

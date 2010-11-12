@@ -119,9 +119,11 @@ function [Ds] = compute_optical_density(Is)
 	npixels = size(Is, 1);
 	nchannels = size(Is, 2);
     maxIs = max(Is, [], 1);
-    logMaxIs = log(maxIs);
-    logIs = log(Is);
+	%maxIs = ones(1, nchannels);
+    logMaxIs = log(maxIs+eps);
+    logIs = log(Is+eps);
     Ds = ones(npixels, nchannels) * diag(logMaxIs) - logIs;
+	Ds(Ds<0) = 0;
 end
 
 % Local Variables:
