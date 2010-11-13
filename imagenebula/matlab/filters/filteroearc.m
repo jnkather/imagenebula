@@ -120,6 +120,12 @@ if derivative<0 || derivative>2,
 		'Derivative in Y direction must be in [0, 2]');
 end
 
+%% If the radius is too large, then return OE kernel instead
+if isinf(r) || (r / max(sigma) > 100)
+	f = filteroe(sigma, support, theta, derivative, dohilbert, visual);
+	return;
+end
+
 %% Make the filter kernel 
 % Calculate half size of the filter, and make sure the size of the filter is
 % odd.
