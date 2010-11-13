@@ -7,7 +7,7 @@ clear
 show = 'r';
 
 norientations = 24;
-elong = 3;
+elong = 5;
 scale = 2;
 radius = 10;
 support = 5;
@@ -31,13 +31,19 @@ switch show
 		end
 
 	case 'r'
-		for i = 1 : nradius
+		rs = 1 ./ (0.1 : -0.01 : 0);
+		for i = 1 : numel(rs)
+			radius = rs(i);
 			theta = 0;
-			radius = startradius + i;
-			f{i} = filteroearccache([scale*elong, scale], radius, support, theta, ...
+			%radius = startradius + i;
+			if (isinf(radius))
+				f{i} = filteroe([scale*elong, scale], support, theta, ...
 				derivative, hilbert);
-			subplot(4, 6, i); imshow(f{i}, []);
+			else
+				f{i} = filteroearccache([scale*elong, scale], radius, support, theta, ...
+				derivative, hilbert);
+			subplot(4, 3, i); imshow(f{i}, []);
 			fprintf('Construct kernel %d\n', i);
+			end
 		end
-		
 end

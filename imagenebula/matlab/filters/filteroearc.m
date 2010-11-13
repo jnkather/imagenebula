@@ -127,7 +127,7 @@ halfsize = max(ceil(support * sigma));
 filtersize = halfsize * 2 + 1;
 
 % Sampling limits.
-maxsamples = 5000;	% Max samples in each dimension. 1000
+maxsamples = 2000;	% Max samples in each dimension. 1000
 maxrate = 50;		% Max sampling rate. 10
 
 % Calculate sampling rate and number of samples.
@@ -147,8 +147,8 @@ dom = linspace(-radius, radius, nsamples);
 % membership = (mx) + (my - 1) * filtersize;
 
 % Rotate the 2D sampling grid by theta.
-rv = (sy + r) .* sin(sx ./ (sy + r));
-ru = (sy + r) .* cos(sx ./ (sy + r)) - r;
+rv = (sy + r) .* sin(sx ./ (sy + r + eps));
+ru = (sy + r) .* cos(sx ./ (sy + r + eps)) - r;
 if ~visual, clear sx sy; end;
 su = ru * sin(pi-theta) + rv * cos(pi-theta);
 sv = ru * cos(pi-theta) - rv * sin(pi-theta);
