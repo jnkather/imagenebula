@@ -7,13 +7,21 @@ function [im] = hsreadimage(imid, imtype, varargin)
 %	IMID	- ID of the image, integer value indicating the index of the image;
 %		or string indicating the name of the image.
 %	IMTYPE	- Type of the image, value should be:
-%		'ccd'	image of the original CCD
-%		'mmask'	multiple-valued mask, each integer indicating a cell
-%		'smask' single-valued mask, 1 indicating the foreground, while 0
+%		'ccd'			image of the original CCD
+%		'r' 'g' 'b'		for intensity in individual color channel
+%		'ri' 'gi' 'bi'	for intensity in individual color channel
+%		'rd' 'gd' 'bd'	for density of individual color channel
+%		'mmask'			multiple-valued mask, each integer indicating a cell
+%		'smask'			single-valued mask, 1 indicating the foreground, while 0
 %			indicates the background
-%		'edge'	an edge mask, 1 indicating the edge pixel, 0 otherwise
-%		'masks'	a cell of mask images, each image of which is a mask for a
+%		'edge'			an edge mask, 1 indicating the edge pixel, 0 otherwise
+%		'masks'			a cell of mask images, each image of which is a mask for a
 %			single cell
+%		'h' 'hi'		for intensity in H channel (hematoxylin)
+%		'e'	'ei'		for intensity in E channel (eosin)
+%		'hc' 'ec'		for color image in H or E channel
+%		'hd'			for density in H channel 
+%		'ed'			for density in E channel
 %	OPTIONS	- Options, including:
 %		'full'		default, full image
 %		'region'	only the marked region
@@ -84,7 +92,73 @@ end
 if strcmpi(imtype, 'ccd')
 	% original image
 	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
-	im = imread(filename);
+	im = double(imread(filename)) / 255;
+
+elseif strcmpi(imtype, 'r') || strcmpi(imtype, 'ri')
+	% intensity in red channel
+	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
+	im = double(imread(filename)) / 255;
+	im = im(:, :, 1);
+
+elseif strcmpi(imtype, 'g') || strcmpi(imtype, 'gi')
+	% intensity in green channel
+	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
+	im = double(imread(filename)) / 255;
+	im = im(:, :, 2);
+
+elseif strcmpi(imtype, 'b')	|| strcmpi(imtype, 'bi')
+	% intensity in blue channel
+	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
+	im = double(imread(filename)) / 255;
+	im = im(:, :, 3);
+	
+elseif strcmpi(imtype, 'rd')
+	% density in red channel
+	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
+	im = double(imread(filename)) / 255;
+	im = -log(im(:, :, 1));
+
+elseif strcmpi(imtype, 'gd')
+	% density in green channel
+	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
+	im = double(imread(filename)) / 255;
+	im = -log(im(:, :, 2));
+
+elseif strcmpi(imtype, 'bd')
+	% density in blue channel
+	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
+	im = double(imread(filename)) / 255;
+	im = -log(im(:, :, 3));
+	
+elseif strcmpi(imtype, 'h') || strcmpi(imtype, 'hi')
+	% intensity in H (hematoxylin) Channel
+	filename = strcat(imagelist(imid).fullpath, '_h.tif');
+	im = double(imread(filename)) / 255;
+	
+elseif strcmpi(imtype, 'e') || strcmpi(imtype, 'ei')
+	% intensity in E (eosin) Channel
+	filename = strcat(imagelist(imid).fullpath, '_e.tif');
+	im = double(imread(filename)) / 255;
+	
+elseif strcmpi(imtype, 'hd')
+	% density in H (hematoxylin) Channel
+	filename = strcat(imagelist(imid).fullpath, '_hd.tif');
+	im = double(imread(filename)) / 255;
+
+elseif strcmpi(imtype, 'ed')
+	% density in H (hematoxylin) Channel
+	filename = strcat(imagelist(imid).fullpath, '_ed.tif');
+	im = double(imread(filename)) / 255;
+	
+elseif strcmpi(imtype, 'hc')
+	% color image in H (hematoxylin) Channel
+	filename = strcat(imagelist(imid).fullpath, '_hc.tif');
+	im = double(imread(filename)) ./ 255;
+
+elseif strcmpi(imtype, 'ec')
+	% color image in E (hematoxylin) Channel
+	filename = strcat(imagelist(imid).fullpath, '_ec.tif');
+	im = double(imread(filename)) ./ 255;
 	
 elseif strcmpi(imtype, 'masks')
 	% cell of masks, each image of which is a binary mask for a single cell
@@ -102,7 +176,7 @@ elseif strcmpi(imtype, 'mmask')
 	filename = strcat(imagelist(imid).fullpath, '.mat');
 	data = load(filename);
 	nim = numel(data.tmp);
-	im = zeros(size(data.tmp(1).BW));
+	im = uint16(zeros(size(data.tmp(1).BW)));
 	for i = 1 : nim
 		im(data.tmp(i).BW) = i;
 	end
@@ -113,9 +187,9 @@ elseif strcmpi(imtype, 'smask')
 	filename = strcat(imagelist(imid).fullpath, '.mat');
 	data = load(filename);
 	nim = numel(data.tmp);
-	im = zeros(size(data.tmp(1).BW));
+	im = false(size(data.tmp(1).BW));
 	for i = 1 : nim
-		im(data.tmp(i).BW) = 1;
+		im(data.tmp(i).BW) = true;
 	end
 	
 elseif strcmpi(imtype, 'edge')
@@ -123,12 +197,12 @@ elseif strcmpi(imtype, 'edge')
 	filename = strcat(imagelist(imid).fullpath, '.mat');
 	data = load(filename);
 	nim = numel(data.tmp);
-	im = zeros(size(data.tmp(1).BW));
+	im = false(size(data.tmp(1).BW));
 	for i = 1 : nim
 		b = bwboundaries(data.tmp(i).BW, 8, 'noholes');
 		for j = 1 : numel(b)
 			ind = sub2ind(size(data.tmp(1).BW), b{j}(:, 1), b{j}(:, 2));
-			im(ind) = 1;
+			im(ind) = true;
 		end
 	end	
 end
@@ -159,13 +233,12 @@ if isnumeric(varargin)
 	minc = max(1, minc - padc); maxc = min(nc, maxc + padc);
 	
 	im = im(minr : maxr, minc : maxc, :);
-elseif ischar(varargin)
-		filename = strcat(imagelist(imid).fullpath, '.mat');
-		data = load(filename);
-		mask = data.TM;
-		[rs, cs] = find(mask > 0);
-		minr = min(rs); maxr = max(rs);
-		minc = min(cs); maxc = max(cs);
-		im = im(minr : maxr, minc : maxc, :);		
-	end
+elseif ischar(varargin) && strcmpi(varargin, 'region')
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	mask = data.TM;
+	[rs, cs] = find(mask > 0);
+	minr = min(rs); maxr = max(rs);
+	minc = min(cs); maxc = max(cs);
+	im = im(minr : maxr, minc : maxc, :);		
 end
