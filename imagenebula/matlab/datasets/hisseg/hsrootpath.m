@@ -1,11 +1,13 @@
-function hsconvert4bel(target, imtype)
-%HSCONVERT4BEL convert datasets to BEL format
+function [path] = hsrootpath()
+%HSDATAPATH returns the root directory for the UCSD biosegmentation dataset for
+% breast cancer detection
 %
-% HSCONVERT4BEL(TARGET, IMTYPE)
+% PATH = HSROOTPATH()
 %
-% INPUT
-%	TARGET	- Target directory
-%	IMTYPE	- Image type, 'full', 'region' or (rowpad, colpad)
+% This function returns the root directory for the UCSD biosegmentaion dataset.
+%
+% OUTPUTS
+%  PATH		- The full path of the root directory.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,25 +39,6 @@ function hsconvert4bel(target, imtype)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
-%% Default arguments
-if nargin < 1, target = 'E:/Active/segref/BEL/Cell/regiondata'; end
-if nargin < 2, imtype = 20; end
-
-%% Target directory
-if exist(target, 'dir') ~= 7
-	error('HSCONVERT4BEL:TargetDirectoryNotExistError', ...
-		'Target directory does not exist!');
-end
-
-%% Load image list
-for i = 1 : 58
-	fprintf('Start Converting %02d/%02d ...', i, 58);
-	im = hsreadimage(i, 'ccd', imtype);
-	imwrite(im, sprintf('%s/I%05dC.tif', target, i-1));
-	im = hsreadimage(i, 'h', imtype);
-	imwrite(im, sprintf('%s/I%05d.tif', target, i-1));
-	im = hsreadimage(i, 'edge', imtype);
-	imwrite(im, sprintf('%s/I%05d_label.tif', target, i-1));
-	fprintf('Done!\n');
-end
-
+%% Full path to the dataset directory
+% Configure this on different computers
+path = 'E:/Active/seg';
