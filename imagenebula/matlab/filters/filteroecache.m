@@ -1,14 +1,14 @@
-function [f] = filteroearccache(...
-	sigma, r, support, theta, derivative, dohilbert, visual)
-%FILTEROEARCCACHE get the cached FILTEROEARC filter kernel from the cache file, or compute one and save it to cache if no corresponding cache file is found.
-%[F] = FILTEROEARCCACHE(SIGMA, R, SUPPORT, THETA, DERIVATIVE, DOHILBERT, VISUAL)
+function [f] = filteroecache(...
+	sigma, support, theta, derivative, dohilbert, visual)
+%FILTEROECACHE get the cached FILTEROE filter kernel from the cache file, or compute one and save it to cache if no corresponding cache file is found.
+%[F] = FILTEROECACHE(SIGMA, SUPPORT, THETA, DERIVATIVE, DOHILBERT, VISUAL)
 %
-% Get the arc oriented energy (OEARC) filter kernel from the cache file, or
+% Get the oriented energy (OEARC) filter kernel from the cache file, or
 % compute one and save it to the cache fle if no corresponding cache file is
 % found.
-% All parameters are the same with FILTEROEARC
+% All parameters are the same with FILTEROE
 %
-% See also FILTEROEARC, FILTEROE, FILTERBANKOE, FILTEROECACHE
+% See also FILTEROEARC, FILTEROE, FILTERBANKOE, FILTEROEARCCACHE
 %
 
 % References:
@@ -73,15 +73,14 @@ function [f] = filteroearccache(...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
 %% Arguments and option processing
-error(nargchk(1, 7, nargin));
+error(nargchk(1, 6, nargin));
 
 % default option
-if nargin<2, r=0; end
-if nargin<3, support=5; end
-if nargin<4, theta=0; end
-if nargin<5, derivative=0; end
-if nargin<6, dohilbert=0; end
-if nargin<7, visual=0; end
+if nargin<2, support=3; end
+if nargin<3, theta=0; end
+if nargin<4, derivative=0; end
+if nargin<5, dohilbert=0; end
+if nargin<6, visual=0; end
 
 % scalar sigma indicating the equal scale in X and Y
 if numel(sigma) == 1,
@@ -94,8 +93,8 @@ if derivative<0 || derivative>2,
 		'Derivative in Y direction must be in [0, 2]');
 end
 
-cachefile = sprintf('OEARC-%.1f-%.1f-%.1f-%.1f-%.3f-%d-%d.mat', ...
-	sigma(1), sigma(2), r, support, theta, derivative, dohilbert);
+cachefile = sprintf('OE-%.1f-%.1f-%.1f-%.3f-%d-%d.mat', ...
+	sigma(1), sigma(2), support, theta, derivative, dohilbert);
 mfile = mfilename('fullpath');
 cachepath = fileparts(mfile);
 cachepath = [cachepath, '\cache\'];
@@ -106,7 +105,7 @@ cachepath = [cachepath, cachefile];
 
 % cache file exist
 if exist(cachepath, 'file') ~= 2
-	f = filteroearc(sigma, r, support, theta, derivative, dohilbert, visual);
+	f = filteroe(sigma, support, theta, derivative, dohilbert, visual);
 	save(cachepath, 'f');
 else
 	f = load(cachepath);
