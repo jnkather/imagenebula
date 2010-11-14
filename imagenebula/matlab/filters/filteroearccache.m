@@ -94,7 +94,14 @@ if derivative<0 || derivative>2,
 		'Derivative in Y direction must be in [0, 2]');
 end
 
-cachefile = sprintf('OEARC-%.1f-%.1f-%.1f-%.1f-%.3f-%d-%d.mat', ...
+%% If the radius is too large, then return OE kernel instead
+if isinf(r) || (r / max(sigma) > 100)
+	f = filteroecache(sigma, support, theta, derivative, dohilbert, visual);
+	return;
+end
+
+%% Cache
+cachefile = sprintf('OEARC-%.1f-%.1f-%.3f-%.1f-%.3f-%d-%d.mat', ...
 	sigma(1), sigma(2), r, support, theta, derivative, dohilbert);
 mfile = mfilename('fullpath');
 cachepath = fileparts(mfile);
