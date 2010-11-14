@@ -204,7 +204,11 @@ elseif strcmpi(imtype, 'edge')
 			ind = sub2ind(size(data.tmp(1).BW), b{j}(:, 1), b{j}(:, 2));
 			im(ind) = true;
 		end
-	end	
+	end
+else
+	% Error
+	error('hsreadimage:ImageTypeError', 'Image Type should not be ''%s''', ...
+		imtype);
 end
 
 %% Regions
@@ -240,5 +244,5 @@ elseif ischar(varargin) && strcmpi(varargin, 'region')
 	[rs, cs] = find(mask > 0);
 	minr = min(rs); maxr = max(rs);
 	minc = min(cs); maxc = max(cs);
-	im = im(minr : maxr, minc : maxc, :);		
+	im = im(minr : maxr, minc : maxc, :);
 end
