@@ -143,8 +143,8 @@ my = round(sy);
 membership = (mx + halfsize + 1) + (my + halfsize) * filtersize;
 
 % Rotate the 2D sampling grid by theta.
-su = sx * sin(theta) + sy * cos(theta);
-sv = sx * cos(theta) - sy * sin(theta);
+su = sx * sin(pi/2-theta) + sy * cos(pi/2-theta);
+sv = sx * cos(pi/2-theta) - sy * sin(pi/2-theta);
 
 % Visualization for debugging
 if visual,
