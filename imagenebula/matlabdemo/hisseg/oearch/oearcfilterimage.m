@@ -1,8 +1,7 @@
-function [fim, f] = oearcfilterimage(...
-	imid)
+function [fim, f] = oearcfilterimage(imid)
 %OEARCFILTERIMAGE filter the image using the arc OE kernel.
 %
-%[F] = OEARCFILTERIMAGE(IMID)
+%[FIM] = OEARCFILTERIMAGE(IMID)
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,24 +35,55 @@ function [fim, f] = oearcfilterimage(...
 
 %% Default argument 
 if nargin < 1, imid = 1; end;
-	
+imtype = 'h';
+imregion = 'region';
+sigma = [6, 1.5];
+s = (0.15 : -0.005 : 0);
+support = 5;
+ntheta = 24;
+derivative = 2;
+hilbert = 1;
+
 %% Read image
-im = hsreadimage(imid, 'h', 'region');
+im = hsreadimage(imid, imtype, imregion);
 
 %% Construct filter kernels
-f = makekernels();
+kernels = makekernels(sigma, s, support, ntheta, derivative, hilbert);
+
+%% Cache directory
+mfile = mfilename('fullpath');
+cachepath = fileparts(mfile);
+cachepath = [cachepath, '\cache\'];
+if exist(cachepath, 'dir') ~= 7
+	mkdir(cachepath);
+end
 
 %% Filter image
-ntheta = f.ntheta;
-nr = f.nr;
+nr = numel(s);
 fim = cell(ntheta, nr);
-
 for itheta = 1 : ntheta
 	for ir = 1 : nr
 		fprintf('Filter image theta:%02d/%02d radius:%02d/%02d ... ', ...
 			itheta, ntheta, ir, nr);
-		fim{itheta, ir} = filterapply(im, -f.f{itheta, ir});
-		fprintf('Done\n');
+		
+		% Cache filename
+		cachefile = sprintf('FIM%d%s%s-%.1f-%.1f-%.3f-%.1f-%3f-%d-%d.mat', ...
+			imid, upper(imtype), upper(imregion), ...
+			kernels.xsigma, kernels.ysigma, kernels.r(ir), ...
+			kernels.support, kernels.theta(itheta), ...
+			kernels.derivative, kernels.hilbert);
+		cachefile = strcat(cachepath, cachefile);
+		
+		if exist(cachepath, 'file') == 2
+			f = load(cachefile);
+			fim{itheta, ir} = f.filteredimage;
+			fprintf('Cache retrieved!\n');
+		else
+			filteredimage = filterapply(im, -kernels.f{itheta, ir});
+			save(cachefile, 'filteredimage');
+			fim{itheta, ir} = filteredimage;
+			fprintf('Done!\n');
+		end
 	end
 end
 

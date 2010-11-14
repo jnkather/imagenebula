@@ -101,7 +101,7 @@ function [fb, thetas, scales] = filterbankoe(norients, startsigma, nscales, ...
 % This file is adapted from the code provided by David R. Martin
 % <dmartin@eecs.berkeley.edu>.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Argument processing and default options
 if nargin < 3, nscales = 1; end			% Default is only 1 scales
