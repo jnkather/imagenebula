@@ -1,7 +1,37 @@
-function [fresult] = oearcfilterimage(imid)
+function [fresult] = oearcfilterimage(imid, imtype, imregion, sigma, ...
+	s, support, ntheta, derivative, hilbert)
 %OEARCFILTERIMAGE filter the image using the arc OE kernel.
 %
-%[FIM] = OEARCFILTERIMAGE(IMID)
+%[FIM] = OEARCFILTERIMAGE(IMID, IMTYPE, IMREGION)
+%
+% INPUT
+%	[IMID]		- Image ID
+%
+%	[IMTYPE]	- Image type, 'ccd', 'h', 'e', 'r', 'g', 'b', etc.
+%
+%	[IMREGION]	- Image region, 'full', 'region' or padding
+%
+%	[SIGMA]		- Scale parameters of filter
+%
+%	[S]			- 1/R, where R indicating radius of the filter
+%
+%	[SUPPORT]	- The half size of the filter is determined by SUPPORT*SIGMA. In
+%	fact, the half size of the filter is MAX(CEIL(SUPPORT * SIGMA)). Default is 
+%	5, which means the half size of the filter is about 5 times the maximum of 
+%	the sigmas in X and Y directions.
+%
+%	[NTHETA]	- Number of orientations
+%
+%	[DERIVATIVE]- Degree of derivative in Y direction, one of {0, 1, 2}. Default
+%	is 0, which means that the filter in Y direction is the same as (or the
+%	hilbert transform of, determined by the value of DOHILBERT) the filter in X
+%	direction.
+%
+%	[DOHILBERT]	- Do Hilbert transform in y direction? Default is 0 (logical
+%	false), which means do not perform Hilbert transformation in Y direction.
+%
+% OUTPUT
+%	FRESULT		- A structure of filtered images and filter kernels
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -35,14 +65,14 @@ function [fresult] = oearcfilterimage(imid)
 
 %% Default argument 
 if nargin < 1, imid = 1; end;
-imtype = 'h';
-imregion = 'region';
-sigma = [6, 1.5];
-s = (0.15 : -0.005 : 0);
-support = 5;
-ntheta = 24;
-derivative = 2;
-hilbert = 1;
+if nargin < 2, imtype = 'h'; end;
+if nargin < 3, imregion = 'region'; end;
+if nargin < 4, sigma = [6, 1.5]; end;
+if nargin < 5, s = (0.15 : -0.005 : 0); end;
+if nargin < 6, support = 5; end;
+if nargin < 7, ntheta = 24; end;
+if nargin < 8, derivative = 2; end;
+if nargin < 9, hilbert = 1; end;
 
 %% Cache directory
 mfile = mfilename('fullpath');
