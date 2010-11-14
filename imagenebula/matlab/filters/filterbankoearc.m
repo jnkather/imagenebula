@@ -1,4 +1,4 @@
-function [kernels] = filterbankoearccache(sigma, s, support, ntheta, ...
+function [kernels] = filterbankoearc(sigma, s, support, ntheta, ...
 	derivative, hilbert)
 %MAKEKERNELS creates kernels for filtering the histopathological images.
 %
@@ -81,26 +81,6 @@ kernels.derivative = derivative;
 kernels.hilbert = hilbert;
 kernels.f = cell(kernels.ntheta, kernels.nr);
 
-%% Cache
-cachefile = sprintf('OEARCFB-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
-	kernels.xsigma, kernels.ysigma, min(s), max(s), numel(s), ...
-	kernels.support, kernels.ntheta, ...
-	kernels.derivative, kernels.hilbert);
-mfile = mfilename('fullpath');
-cachepath = fileparts(mfile);
-cachepath = [cachepath, '\cache\'];
-if exist(cachepath, 'dir') ~= 7
-	mkdir(cachepath);
-end
-cachepath = [cachepath, cachefile];
-
-%% Read if cache file exists
-if exist(cachepath, 'file') == 2
-	f = load(cachepath);
-	kernels = f.kernels;
-	return;
-end
-
 %% Construct Filter Kernels
 for itheta = 1 : kernels.ntheta
 	theta = kernels.theta(itheta);
@@ -113,5 +93,3 @@ for itheta = 1 : kernels.ntheta
 		fprintf('Done\n');
 	end
 end
-
-save(cachepath, 'kernels');
