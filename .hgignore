@@ -1,2 +1,3 @@
 glob:*.asv
 glob:*.m~
+glob:imagenebula/matlabdemo/hisseg/oearch/cache/
