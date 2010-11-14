@@ -1,4 +1,4 @@
-function [fim, f] = oearcfilterimage(imid)
+function [fresult] = oearcfilterimage(imid)
 %OEARCFILTERIMAGE filter the image using the arc OE kernel.
 %
 %[FIM] = OEARCFILTERIMAGE(IMID)
@@ -44,12 +44,6 @@ ntheta = 24;
 derivative = 2;
 hilbert = 1;
 
-%% Read image
-im = hsreadimage(imid, imtype, imregion);
-
-%% Construct filter kernels
-kernels = makekernels(sigma, s, support, ntheta, derivative, hilbert);
-
 %% Cache directory
 mfile = mfilename('fullpath');
 cachepath = fileparts(mfile);
@@ -57,6 +51,27 @@ cachepath = [cachepath, '\cache\'];
 if exist(cachepath, 'dir') ~= 7
 	mkdir(cachepath);
 end
+
+%% Cache File
+cachefile = sprintf('FIM%d%s%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
+	imid, upper(imtype), upper(imregion), ...
+	sigma(1), sigma(2), max(s), min(s), numel(s), ...
+	support, ntheta, derivative, hilbert);
+cachefile = strcat(cachepath, cachefile);
+
+if exist(cachefile, 'file') == 2
+	fprintf('Found cached file, retrieving ... ');
+	f = load(cachefile);
+	fresult = f.fresult;
+	fprintf('Cache retrieved!\n');
+	return;
+end
+
+%% Read image
+im = hsreadimage(imid, imtype, imregion);
+
+%% Construct filter kernels
+kernels = filterbankoearccache(sigma, s, support, ntheta, derivative, hilbert);
 
 %% Filter image
 nr = numel(s);
@@ -66,36 +81,30 @@ for itheta = 1 : ntheta
 		fprintf('Filter image theta:%02d/%02d radius:%02d/%02d ... ', ...
 			itheta, ntheta, ir, nr);
 		
-		% Cache filename
-		cachefile = sprintf('FIM%d%s%s-%.1f-%.1f-%.3f-%.1f-%3f-%d-%d.mat', ...
-			imid, upper(imtype), upper(imregion), ...
-			kernels.xsigma, kernels.ysigma, kernels.r(ir), ...
-			kernels.support, kernels.theta(itheta), ...
-			kernels.derivative, kernels.hilbert);
-		cachefile = strcat(cachepath, cachefile);
-		
-		if exist(cachepath, 'file') == 2
-			f = load(cachefile);
-			fim{itheta, ir} = f.filteredimage;
-			fprintf('Cache retrieved!\n');
-		else
-			filteredimage = filterapply(im, -kernels.f{itheta, ir});
-			save(cachefile, 'filteredimage');
-			fim{itheta, ir} = filteredimage;
-			fprintf('Done!\n');
-		end
+		filteredimage = filterapply(im, -kernels.f{itheta, ir});
+		fim{itheta, ir} = filteredimage;
+		fprintf('Done!\n');
 	end
 end
 
+% Result structure
+fresult = struct;
+fresult.fim = fim;
+
 %% Find maximum and minimum
 % max and min 
-[maxfim, imaxfim] = cellmax(fim);
-[imaxtheta, imaxr] = ind2sub(size(fim), imaxfim);
-immaxtheta = f.theta(imaxtheta);
-immaxr = f.r(imaxr);
+[fresult.maxfim, imaxfim] = cellmax(fim, 'row');
+[fresult.imaxtheta, fresult.imaxr] = ind2sub(size(fim), imaxfim);
+fresult.immaxtheta = kernels.theta(fresult.imaxtheta);
+fresult.immaxr = kernels.r(fresult.imaxr);
 
-[minfim, iminfim] = cellmin(fim);
-[imintheta, iminr] = ind2sub(size(fim), iminfim);
-immintheta = f.theta(imintheta);
-imminr = f.r(iminr);
+[fresult.minfim, iminfim] = cellmin(fim, 'row');
+[fresult.imintheta, fresult.iminr] = ind2sub(size(fim), iminfim);
+fresult.immintheta = kernels.theta(fresult.imintheta);
+fresult.imminr = kernels.r(fresult.iminr);
 
+% kernels used to filter the image
+fresult.kernels = kernels;
+
+%% Cache the result 
+save(cachefile, 'fresult');
