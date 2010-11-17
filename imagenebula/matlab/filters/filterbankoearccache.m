@@ -86,12 +86,7 @@ cachefile = sprintf('OEARCFB-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
 	kernels.xsigma, kernels.ysigma, min(s), max(s), numel(s), ...
 	kernels.support, kernels.ntheta, ...
 	kernels.derivative, kernels.hilbert);
-mfile = mfilename('fullpath');
-cachepath = fileparts(mfile);
-cachepath = [cachepath, '/cache/'];
-if exist(cachepath, 'dir') ~= 7
-	mkdir(cachepath);
-end
+cachepath = filtercachepath();
 cachepath = [cachepath, cachefile];
 
 %% Read if cache file exists
