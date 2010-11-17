@@ -1,13 +1,12 @@
-function [path] = hsrootpath()
-%HSDATAPATH returns the root directory for the UCSD biosegmentation dataset for
-% breast cancer detection
+function [path] = oearcfilterresultpath()
+%OEARCFILTERRESULTPATH returns the path to the filter result directory.
 %
-% PATH = HSROOTPATH()
+% PATH = OEARCFILTERRESULTPATH()
 %
-% This function returns the root directory for the UCSD biosegmentaion dataset.
+% This function returns the path to the filter result directory.
 %
 % OUTPUTS
-%  PATH		- The full path of the root directory.
+%  PATH		- The full path to the filter result directory.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,6 +38,9 @@ function [path] = hsrootpath()
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
-%% Full path to the dataset directory
+%% Full path to the filter cache directory
 % Configure this on different computers
-path = 'E:/Active/hisseg';
+path = 'E:/Active/filteredresults/';
+% mfile = mfilename('fullpath');
+% cachepath = fileparts(mfile);
+% path = [cachepath, '/cache/'];

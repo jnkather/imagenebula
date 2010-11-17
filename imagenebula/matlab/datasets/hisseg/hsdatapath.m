@@ -41,4 +41,4 @@ function [path] = hsdatapath()
 
 %% Full path to the dataset directory
 % Configure this on different computers
-path = strcat(hsrootpath(), '/data');
+path = fullfile(hsrootpath(), 'data');

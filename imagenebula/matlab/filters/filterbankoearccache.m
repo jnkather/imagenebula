@@ -87,7 +87,7 @@ cachefile = sprintf('OEARCFB-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
 	kernels.support, kernels.ntheta, ...
 	kernels.derivative, kernels.hilbert);
 cachepath = filtercachepath();
-cachepath = [cachepath, cachefile];
+cachepath = fullfile(cachepath, cachefile);
 
 %% Read if cache file exists
 if exist(cachepath, 'file') == 2
