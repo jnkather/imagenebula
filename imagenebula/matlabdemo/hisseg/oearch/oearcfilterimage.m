@@ -64,15 +64,15 @@ function [fresult] = oearcfilterimage(imid, imtype, imregion, sigma, ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
 %% Default argument 
-if nargin < 1, imid = 1; end;
-if nargin < 2, imtype = 'h'; end;
-if nargin < 3, imregion = 'region'; end;
-if nargin < 4, sigma = [6, 1.5]; end;
-if nargin < 5, s = (0.15 : -0.005 : 0); end;
-if nargin < 6, support = 5; end;
-if nargin < 7, ntheta = 24; end;
-if nargin < 8, derivative = 2; end;
-if nargin < 9, hilbert = 1; end;
+if (nargin < 1) || (numel(imid) <= 0), imid = 1; end;
+if (nargin < 2) || (numel(imtype) <= 0), imtype = 'h'; end;
+if (nargin < 3) || (numel(imregion) <= 0), imregion = 'region'; end;
+if (nargin < 4) || (numel(sigma) <= 0), sigma = [6, 1.5]; end;
+if (nargin < 5) || (numel(s) <= 0), s = (0.15 : -0.005 : 0); end;
+if (nargin < 6) || (numel(support) <= 0), support = 5; end;
+if (nargin < 7) || (numel(ntheta) <= 0), ntheta = 24; end;
+if (nargin < 8) || (numel(derivative) <= 0), derivative = 2; end;
+if (nargin < 9) || (numel(hilbert) <= 0), hilbert = 1; end;
 
 %% Cache directory
 mfile = mfilename('fullpath');
@@ -83,8 +83,18 @@ if exist(cachepath, 'dir') ~= 7
 end
 
 %% Cache File
-cachefile = sprintf('FIM%d%s%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
-	imid, upper(imtype), upper(imregion), ...
+if ischar(imregion)
+	imregionstr = imregion;
+elseif numel(imregion) == 1
+	imregionstr = sprintf('%d', imregion);
+elseif numel(imregion) == 2
+	imregionstr = sprintf('%dP%d', imregion(1), imregion(2));
+else
+	error('oearcfilterimage:RegionArgError',...
+		'Argument IMREGION is wrong!');
+end
+cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
+	imid, upper(imtype), upper(imregionstr), ...
 	sigma(1), sigma(2), max(s), min(s), numel(s), ...
 	support, ntheta, derivative, hilbert);
 cachefile = strcat(cachepath, cachefile);
