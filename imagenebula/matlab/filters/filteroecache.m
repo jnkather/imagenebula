@@ -97,7 +97,7 @@ cachefile = sprintf('OE-%.1f-%.1f-%.1f-%.3f-%d-%d.mat', ...
 	sigma(1), sigma(2), support, theta, derivative, dohilbert);
 mfile = mfilename('fullpath');
 cachepath = fileparts(mfile);
-cachepath = [cachepath, '\cache\'];
+cachepath = [cachepath, '/cache/'];
 if exist(cachepath, 'dir') ~= 7
 	mkdir(cachepath);
 end

@@ -77,7 +77,7 @@ if (nargin < 9) || (numel(hilbert) <= 0), hilbert = 1; end;
 %% Cache directory
 mfile = mfilename('fullpath');
 cachepath = fileparts(mfile);
-cachepath = [cachepath, '\cache\'];
+cachepath = [cachepath, '/cache/'];
 if exist(cachepath, 'dir') ~= 7
 	mkdir(cachepath);
 end
@@ -100,6 +100,11 @@ cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
 cachefile = strcat(cachepath, cachefile);
 
 if exist(cachefile, 'file') == 2
+	if nargout < 1
+		fprintf('Found cached file, Skipped!\n');
+		return;
+	end;
+	
 	fprintf('Found cached file, retrieving ... ');
 	f = load(cachefile);
 	fresult = f.fresult;

@@ -88,7 +88,7 @@ cachefile = sprintf('OEARCFB-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
 	kernels.derivative, kernels.hilbert);
 mfile = mfilename('fullpath');
 cachepath = fileparts(mfile);
-cachepath = [cachepath, '\cache\'];
+cachepath = [cachepath, '/cache/'];
 if exist(cachepath, 'dir') ~= 7
 	mkdir(cachepath);
 end
