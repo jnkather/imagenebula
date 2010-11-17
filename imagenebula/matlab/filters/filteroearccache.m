@@ -104,11 +104,7 @@ end
 cachefile = sprintf('OEARC-%.1f-%.1f-%.3f-%.1f-%.3f-%d-%d.mat', ...
 	sigma(1), sigma(2), r, support, theta, derivative, dohilbert);
 cachepath = filtercachepath();
-cachepath = [cachepath, '/cache/'];
-if exist(cachepath, 'dir') ~= 7
-	mkdir(cachepath);
-end
-cachepath = [cachepath, cachefile];
+cachepath = fullfile(cachepath, cachefile);
 
 % cache file exist
 if exist(cachepath, 'file') ~= 2

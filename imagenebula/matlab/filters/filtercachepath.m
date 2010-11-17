@@ -44,3 +44,6 @@ path = 'E:/Active/filtercache';
 % mfile = mfilename('fullpath');
 % cachepath = fileparts(mfile);
 % path = [cachepath, '/cache/'];
+if exist(path, 'dir') ~= 7
+	mkdir(path);
+end

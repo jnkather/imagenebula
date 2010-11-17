@@ -75,12 +75,7 @@ if (nargin < 8) || (numel(derivative) <= 0), derivative = 2; end;
 if (nargin < 9) || (numel(hilbert) <= 0), hilbert = 1; end;
 
 %% Cache directory
-mfile = mfilename('fullpath');
-cachepath = fileparts(mfile);
-cachepath = [cachepath, '/cache/'];
-if exist(cachepath, 'dir') ~= 7
-	mkdir(cachepath);
-end
+cachepath = oearcfilterresultpath();
 
 %% Cache File
 if ischar(imregion)
@@ -97,7 +92,7 @@ cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
 	imid, upper(imtype), upper(imregionstr), ...
 	sigma(1), sigma(2), max(s), min(s), numel(s), ...
 	support, ntheta, derivative, hilbert);
-cachefile = strcat(cachepath, cachefile);
+cachefile = fullfile(cachepath, cachefile);
 
 if exist(cachefile, 'file') == 2
 	if nargout < 1

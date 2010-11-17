@@ -89,6 +89,8 @@ if (imid < 1) || (imid > numel(imagelist))
 end
 
 %% Load image
+imagelist(imid).fullpath = fullfile(hsdatapath(), imagelist(imid).name);
+
 if strcmpi(imtype, 'ccd')
 	% original image
 	filename = strcat(imagelist(imid).fullpath, '_ccd.tif');
