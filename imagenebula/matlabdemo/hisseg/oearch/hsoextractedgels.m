@@ -1,14 +1,47 @@
-function [coords, strengths, rs, thetas] = hsoextractedgels(edgemap, ...
-	imstrength, imr, imtheta)
+function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
+	hsoextractedgels(edgemap, imstrength, imr, imtheta, centroids)
 %HSOEXTRACTEDGELs extracts edgels (edge element) from the given map.
 %
-%[FIM] = HSOEXTRACTEDGELS(EDGEMAP)
+%[COORDS, STRENGTH, RS, THETAS, RELCENCART, RELCENPOL] = HSOEXTRACTEDGELS(
+%	EDGEMAP, IMSTRENGTH, IMR, IMTHETA, CENTROIDS)
 %
 % INPUT
-%	EDGEMAP		- Edge map or maps (cell of edge map) to extract
+%	EDGEMAP		- Edge map or maps from which we want to extract the edgel.
+%		EDGEMAP can be a single BW image, where 1 indicates a edge pixel.
+%		EDGEMAP can also be a cell of multiple BW images, each of which is a
+%		edge map for a single object.
 %
+%	[IMSTRENGTH]- Edge strength image, the value of each pixel represents the
+%		edge strength or edge probability.
+%
+%	[IMR]		- Radius image, the value of each pixel represents the radius of
+%		the maximal response filter.
+%
+%	[IMTHETA]	- Theta image, the value of each pixel reprensets the
+%		orientation of the maximal response filter.
+%
+%	[CENTROIDS]	- Centroid coordinate, or coordinates. Each row represents a
+%		centroid, and the two columns represent R and C of the centroids
+%		respectively.
+%		The row number (number of centroids) should be equal to the number of
+%		edge maps.
+%	
 % OUTPUT
-%	FRESULT		- A structure of filtered images and filter kernels
+%	COORDS		- Cartesian coordinates of the edgels. Each row represents a
+%		edgel.
+%
+%	STRENGTHS	- Column vector represents strengths of each edgel.
+%
+%	RS			- Column vector represents radius of each edgel.
+%
+%	THETAS		- Column vector represents orientation of each edgel.
+%
+%	RELCENCART	- Cartesian coordinates of each corresponding centroids 
+%		relatively to the edgels. Each row represents a edgel.
+%
+%	RELCENPOL	- Polar coordiantes of each correspondings centroids relatively
+%		to the edgels. Each row represents a edgel.
+%
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -64,20 +97,44 @@ if nargout >= 4 && nargin < 4
 		'Input argument IMTHETA must be specified to get output THETAS!');
 end
 
+% To get output RELCENCART and RELCENRHO, input CENTROIDS must be specified
+if nargout >= 5 && nargin < 5
+	error('hsoextractedgels:InputArgumentError', ...
+		'Input argument CENTROIDS must be specified to get output RELCENCART and RELCENRHO!');
+end
+
+% Number of centroids should be equal to the number edge maps
+if nargin >= 5
+	if ~iscell(edgemap) && size(centroids, 1) > 1
+		error('hsoextractedgels:CentroidsNumberError', ...
+			'Centroids number does not equal to the number of edges!');
+	end
+	
+	if iscell(edgemap) && size(centroids, 1) ~= numel(edgemap)
+		error('hsoextractedgels:CentroidsNumberError', ...
+			'Centroids number does not equal to the number of edges!');		
+	end
+end
+
 %% Extract all edgel coordinates
 if iscell(edgemap)
 	% a cell of edge maps
 	rows = []; cols = []; inds = [];
+	cencoords = [];
 	for i = 1 : numel(edgemap)
 		[row, col] = find(edgemap{i} > 0);
-		rows = [rows; row];
-		cols = [cols; col];
-		inds = [inds; sub2ind(size(edgemap{i}), row, col)];
+		n = numel(row);
+		cencoords = [cencoords; ones(n, 1) * centroids(i, :)]; %#ok<AGROW>
+		rows = [rows; row]; %#ok<AGROW>
+		cols = [cols; col]; %#ok<AGROW>
+		inds = [inds; sub2ind(size(edgemap{i}), row, col)]; %#ok<AGROW>
 	end
 	coords = [rows, cols];
 else
 	% a single edge map
 	[rows, cols] = find(edgemap > 0);
+	n = numel(rows);
+	cencoords = ones(n, 1) * centroids;
 	inds = sub2ind(size(edgemap), rows, cols);
 	coords = [rows, cols];
 end
@@ -87,3 +144,14 @@ if nargout >= 2, strengths = imstrength(inds); end;
 if nargout >= 3, rs = imr(inds); end;
 if nargout >= 4, thetas = imtheta(inds); end;
 
+%% Centroid relative to the edgel
+relceny = coords(:, 1) - cencoords(:, 1);
+relcenx = cencoords(:, 2) - coords(:, 2);
+[relcentheta, relcenrho] = cart2pol(relcenx, relceny);
+relcentheta = relcentheta - thetas;
+%relcentheta(relcentheta > pi) = relcentheta(relcentheta > pi) - 2*pi;
+[relcenx, relceny] = pol2cart(relcentheta, relcenrho);
+[relcentheta, relcenrho] = cart2pol(relcenx, relceny);
+
+relcencart = [relcenx, relceny];
+relcenpol = [relcentheta, relcenrho];

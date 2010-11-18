@@ -61,4 +61,9 @@ else
 	cc = mean(cs);	
 end
 
-
+% If only one output is required, return centroids coordinates as row vectors of
+% a maxtrix, where the first column indicates the row coordinates and the second
+% column represents the column coordinates
+if nargout == 1
+	cr = [cr, cc];
+end
