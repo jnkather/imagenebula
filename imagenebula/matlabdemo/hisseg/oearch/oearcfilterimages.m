@@ -10,12 +10,16 @@ function oearcfilterimages(imid, imtype, imregion, sigma, ...
 %	[IMID]		- Image id, could be a single IDs or vector of IDs.
 %
 %	[IMTYPE]	- Image type, 'ccd', 'h', 'e', 'r', 'g', 'b', etc.
+%				Could be a single string, or a cell of strings.
 %
 %	[IMREGION]	- Image region, 'full', 'region' or padding [rows, cols]
+%				Could be a single variable, or a cell.
 %
 %	[SIGMA]		- Scale parameters of filter, [sigmax, sigmay]
+%				Could be a single matrix, or a cell of matrics.
 %
 %	[S]			- 1/R, where R indicating radius of the filter
+%				Could be a vector, or a cell of vectors.
 %
 %	[SUPPORT]	- The half size of the filter is determined by SUPPORT*SIGMA. In
 %	fact, the half size of the filter is MAX(CEIL(SUPPORT * SIGMA)). Default is 
@@ -83,7 +87,7 @@ if (nargin < 4) || (numel(sigma) <= 0), sigma = [6, 1.5]; end;
 if (nargin < 5) || (numel(s) <= 0), s = (0.15 : -0.005 : 0); end;
 if (nargin < 6) || (numel(support) <= 0), support = 5; end;
 if (nargin < 7) || (numel(ntheta) <= 0), ntheta = 24; end;
-if (nargin < 8) || (numel(derivative) <= 0), derivative = (0:2); end;
+if (nargin < 8) || (numel(derivative) <= 0), derivative = 2; end;
 if (nargin < 9) || (numel(hilbert) <= 0), hilbert = (0:1); end;
 
 %% Paramter conversion
