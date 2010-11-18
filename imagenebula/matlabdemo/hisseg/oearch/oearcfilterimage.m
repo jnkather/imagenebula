@@ -1,8 +1,9 @@
 function [fresult] = oearcfilterimage(imid, imtype, imregion, sigma, ...
-	s, support, ntheta, derivative, hilbert)
+	s, support, ntheta, derivative, hilbert, savefim)
 %OEARCFILTERIMAGE filter the image using the arc OE kernel.
 %
-%[FIM] = OEARCFILTERIMAGE(IMID, IMTYPE, IMREGION)
+%[FIM] = OEARCFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
+%	DERIVATIVE, HILBERT, SAVEFIM)
 %
 % INPUT
 %	[IMID]		- Image ID
@@ -27,8 +28,12 @@ function [fresult] = oearcfilterimage(imid, imtype, imregion, sigma, ...
 %	hilbert transform of, determined by the value of DOHILBERT) the filter in X
 %	direction.
 %
-%	[DOHILBERT]	- Do Hilbert transform in y direction? Default is 0 (logical
+%	[HILBERT]	- Do Hilbert transform in y direction? Default is 0 (logical
 %	false), which means do not perform Hilbert transformation in Y direction.
+%
+%	[SAVEFIM]	- Save intermediate filter results in the final result file?
+%	Default is 0 (logical false), which means do not save filter results in the
+%	final result file.
 %
 % OUTPUT
 %	FRESULT		- A structure of filtered images and filter kernels
@@ -64,20 +69,22 @@ function [fresult] = oearcfilterimage(imid, imtype, imregion, sigma, ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
 %% Default argument 
-if (nargin < 1) || (numel(imid) <= 0), imid = 1; end;
-if (nargin < 2) || (numel(imtype) <= 0), imtype = 'h'; end;
-if (nargin < 3) || (numel(imregion) <= 0), imregion = 'region'; end;
-if (nargin < 4) || (numel(sigma) <= 0), sigma = [6, 1.5]; end;
-if (nargin < 5) || (numel(s) <= 0), s = (0.15 : -0.005 : 0); end;
-if (nargin < 6) || (numel(support) <= 0), support = 5; end;
-if (nargin < 7) || (numel(ntheta) <= 0), ntheta = 24; end;
-if (nargin < 8) || (numel(derivative) <= 0), derivative = 2; end;
-if (nargin < 9) || (numel(hilbert) <= 0), hilbert = 1; end;
+if (nargin < 1) || isempty(imid), imid = 1; end;
+if (nargin < 2) || isempty(imtype), imtype = 'h'; end;
+if (nargin < 3) || isempty(imregion), imregion = 'region'; end;
+if (nargin < 4) || isempty(sigma), sigma = [6, 1.5]; end;
+if (nargin < 5) || isempty(s), s = (0.15 : -0.005 : 0); end;
+if (nargin < 6) || isempty(support), support = 5; end;
+if (nargin < 7) || isempty(ntheta), ntheta = 24; end;
+if (nargin < 8) || isempty(derivative), derivative = 2; end;
+if (nargin < 9) || isempty(hilbert), hilbert = 1; end;
+if (nargin < 10) || isempty(savefim), savefim = false; end;
 
 %% Cache directory
 cachepath = oearcfilterresultpath();
 
 %% Cache File
+% Region string
 if ischar(imregion)
 	imregionstr = imregion;
 elseif numel(imregion) == 1
@@ -88,10 +95,12 @@ else
 	error('oearcfilterimage:RegionArgError',...
 		'Argument IMREGION is wrong!');
 end
-cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d.mat', ...
+
+% Find cache file, if it exists, retrieve that file and return
+cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d-%d.mat', ...
 	imid, upper(imtype), upper(imregionstr), ...
 	sigma(1), sigma(2), max(s), min(s), numel(s), ...
-	support, ntheta, derivative, hilbert);
+	support, ntheta, derivative, hilbert, savefim);
 cachefile = fullfile(cachepath, cachefile);
 
 if exist(cachefile, 'file') == 2
@@ -105,6 +114,29 @@ if exist(cachefile, 'file') == 2
 	fresult = f.fresult;
 	fprintf('Cache retrieved!\n');
 	return;
+end
+
+% If the cache file is not found, find the corresponding cache file containing
+% intermediate filter images. If it is found, retrieve it instead.
+if ~savefim
+	cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d-%d.mat', ...
+		imid, upper(imtype), upper(imregionstr), ...
+		sigma(1), sigma(2), max(s), min(s), numel(s), ...
+		support, ntheta, derivative, hilbert, true);
+	cachefile = fullfile(cachepath, cachefile);
+	
+	if exist(cachefile, 'file') == 2
+		if nargout < 1
+			fprintf('Found alternative cached file, Skipped!\n');
+			return;
+		end;
+
+		fprintf('Found alternative cached file, retrieving ... ');
+		f = load(cachefile);
+		fresult = rmfield(f.fresult, 'fim');
+		fprintf('Cache retrieved!\n');
+		return;
+	end	
 end
 
 %% Read image
@@ -129,7 +161,9 @@ end
 
 % Result structure
 fresult = struct;
-fresult.fim = fim;
+if savefim,
+	fresult.fim = fim;
+end
 
 %% Find maximum and minimum
 % max and min 
