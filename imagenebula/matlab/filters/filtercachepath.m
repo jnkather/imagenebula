@@ -40,10 +40,16 @@ function [path] = filtercachepath()
 
 %% Full path to the filter cache directory
 % Configure this on different computers
-path = 'E:/Active/filtercache';
-% mfile = mfilename('fullpath');
-% cachepath = fileparts(mfile);
-% path = [cachepath, '/cache/'];
-if exist(path, 'dir') ~= 7
-	mkdir(path);
+if strcmpi(computer, 'glnxa64')
+	% Linux System
+	path = '/media/work/Active/filtercache';
+else
+	% Windows System
+	path = 'E:/Active/filtercache';
+	% mfile = mfilename('fullpath');
+	% cachepath = fileparts(mfile);
+	% path = [cachepath, '/cache/'];
+	if exist(path, 'dir') ~= 7
+		mkdir(path);
+	end
 end

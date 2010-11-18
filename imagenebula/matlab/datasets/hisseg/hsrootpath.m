@@ -41,4 +41,10 @@ function [path] = hsrootpath()
 
 %% Full path to the dataset directory
 % Configure this on different computers
-path = 'E:/Active/hisseg';
+if strcmpi(computer, 'glnxa64')
+	% Linux system
+	path = '/media/work/Active/hisseg';
+else
+	% Windows system
+	path = 'E:/Active/hisseg';
+end

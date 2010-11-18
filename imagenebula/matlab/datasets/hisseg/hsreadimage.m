@@ -14,9 +14,15 @@ function [im] = hsreadimage(imid, imtype, varargin)
 %		'mmask'			multiple-valued mask, each integer indicating a cell
 %		'smask'			single-valued mask, 1 indicating the foreground, while 0
 %			indicates the background
-%		'edge'			an edge mask, 1 indicating the edge pixel, 0 otherwise
 %		'masks'			a cell of mask images, each image of which is a mask for a
 %			single cell
+%		'edge'			an edge mask, 1 indicating the edge pixel, 0 otherwise
+%		'edges'			a cell of edge maps, each of which corresponds to a
+%			single cell.
+%		'exedge'		an external edge mask, 1 indicating the edge pixel, 0
+%			otherwise.
+%		'exedges'		a cell of external edge maps, each of which corresponds
+%			to a single cell.
 %		'h' 'hi'		for intensity in H channel (hematoxylin)
 %		'e'	'ei'		for intensity in E channel (eosin)
 %		'hc' 'ec'		for color image in H or E channel
@@ -193,6 +199,21 @@ elseif strcmpi(imtype, 'smask')
 	for i = 1 : nim
 		im(data.tmp(i).BW) = true;
 	end
+
+elseif strcmpi(imtype, 'edges')
+	% cell of edge maps, each of which corresponds to a single cell
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = cell(1, nim);	
+	for i = 1 : nim
+		im{i} = false(size(data.tmp(i).BW));
+		b = bwboundaries(data.tmp(i).BW, 8, 'noholes');
+		for j = 1 : numel(b)
+			ind = sub2ind(size(data.tmp(i).BW), b{j}(:, 1), b{j}(:, 2));
+			im{i}(ind) = true;
+		end
+	end
 	
 elseif strcmpi(imtype, 'edge')
 	% edge map
@@ -207,11 +228,41 @@ elseif strcmpi(imtype, 'edge')
 			im(ind) = true;
 		end
 	end
+	
+elseif strcmpi(imtype, 'exedge')
+	% external edge map
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = false(size(data.tmp(1).BW));
+	for i = 1 : nim
+		mask = data.tmp(i).BW;
+		mask2 = imdilate(data.tmp(i).BW, strel('square', 3));
+		b = xor(mask2, mask);
+		im(b) = true;
+	end
+	
+elseif strcmpi(imtype, 'exedges')
+	% cell of external edge maps, each of which corresponds to a single cell
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = cell(1, nim);
+	
+	for i = 1 : nim
+		im{i} = false(size(data.tmp(1).BW));
+		mask = data.tmp(i).BW;
+		mask2 = imdilate(data.tmp(i).BW, strel('square', 3));
+		b = xor(mask2, mask);
+		im{i}(b)= true;
+	end
+	
 else
 	% Error
 	error('hsreadimage:ImageTypeError', 'Image Type should not be ''%s''', ...
 		imtype);
 end
+
 
 %% Regions
 varargin = varargin{1};
@@ -237,8 +288,14 @@ if isnumeric(varargin)
 	minc = min(cs); maxc = max(cs);
 	minr = max(1, minr - padr); maxr = min(nr, maxr + padr);
 	minc = max(1, minc - padc); maxc = min(nc, maxc + padc);
-	
-	im = im(minr : maxr, minc : maxc, :);
+
+	if iscell(im)
+		for i = 1 : numel(im)
+			im{i} = im{i}(minr : maxr, minc : maxc, :);
+		end
+	else
+		im = im(minr : maxr, minc : maxc, :);
+	end
 elseif ischar(varargin) && strcmpi(varargin, 'region')
 	filename = strcat(imagelist(imid).fullpath, '.mat');
 	data = load(filename);

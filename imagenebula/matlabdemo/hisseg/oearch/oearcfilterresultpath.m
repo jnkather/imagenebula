@@ -40,7 +40,13 @@ function [path] = oearcfilterresultpath()
 
 %% Full path to the filter cache directory
 % Configure this on different computers
-path = 'E:/Active/filteredresults/';
-% mfile = mfilename('fullpath');
-% cachepath = fileparts(mfile);
-% path = [cachepath, '/cache/'];
+if strcmpi(computer, 'glnxa64')
+	% Linux System
+	path = '/media/work/Active/filteredresults/';
+else
+	% Windows System
+	path = 'E:/Active/filteredresults/';
+	% mfile = mfilename('fullpath');
+	% cachepath = fileparts(mfile);
+	% path = [cachepath, '/cache/'];
+end
