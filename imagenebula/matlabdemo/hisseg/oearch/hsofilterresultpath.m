@@ -1,7 +1,7 @@
-function [path] = oearcfilterresultpath()
-%OEARCFILTERRESULTPATH returns the path to the filter result directory.
+function [path] = hsofilterresultpath()
+%HSOFILTERRESULTPATH returns the path to the filter result directory.
 %
-% PATH = OEARCFILTERRESULTPATH()
+% PATH = HSOFILTERRESULTPATH()
 %
 % This function returns the path to the filter result directory.
 %

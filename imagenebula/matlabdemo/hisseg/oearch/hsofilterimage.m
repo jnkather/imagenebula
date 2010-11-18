@@ -1,8 +1,8 @@
-function [fresult] = oearcfilterimage(imid, imtype, imregion, sigma, ...
+function [fresult] = hsofilterimage(imid, imtype, imregion, sigma, ...
 	s, support, ntheta, derivative, hilbert, savefim)
-%OEARCFILTERIMAGE filter the image using the arc OE kernel.
+%HSOFILTERIMAGE filter the image using the arc OE kernel.
 %
-%[FIM] = OEARCFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
+%[FIM] = HSOFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
 %	DERIVATIVE, HILBERT, SAVEFIM)
 %
 % INPUT

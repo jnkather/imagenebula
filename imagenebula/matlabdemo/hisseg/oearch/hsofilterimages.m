@@ -1,9 +1,9 @@
-function oearcfilterimages(imid, imtype, imregion, sigma, ...
+function hsofilterimages(imid, imtype, imregion, sigma, ...
 	s, support, ntheta, derivative, hilbert)
-%OEARCFILTERIMAGE filter all images using the arc OE kernel and save them to
+%HSOFILTERIMAGE filter all images using the arc OE kernel and save them to
 % cache files.
 %
-% OEARCFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
+% HSOFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
 %	DERIVATIVE, HILBERT)
 %
 % INPUT
