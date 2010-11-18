@@ -136,9 +136,9 @@ for iderivative = 1 : nderivative
 for ihilbert = 1 : nhilbert
 	i = i + 1;
 	fprintf('Beginning iteration %d / %d ...\n', i, n);
-	oearcfilterimage(imid(iim), imtype{iimtype}, imregion{iimregion}, ...
+	hsofilterimage(imid(iim), imtype{iimtype}, imregion{iimregion}, ...
 		sigma{isigma}, s{is}, support(isupport), ntheta(intheta), ...
-		derivative(iderivative), hilbert(ihilbert));
+		derivative(iderivative), hilbert(ihilbert), true);
 	fprintf('Iteration %d / %d Done!\n', i, n);
 end
 end
