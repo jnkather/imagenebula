@@ -16,12 +16,19 @@ function [im] = hsreadimage(imid, imtype, varargin)
 %			indicates the background
 %		'masks'			a cell of mask images, each image of which is a mask for a
 %			single cell
-%		'edge'			an edge mask, 1 indicating the edge pixel, 0 otherwise
-%		'edges'			a cell of edge maps, each of which corresponds to a
+%		'edge' 'edge4'	an edge mask, 1 indicating the edge pixel, 0 otherwise
+%		'edge8'			a mask of 8-connected edges
+%		'edges'	'edges4'a cell of edge maps, each of which corresponds to a
 %			single cell.
-%		'exedge'		an external edge mask, 1 indicating the edge pixel, 0
-%			otherwise.
-%		'exedges'		a cell of external edge maps, each of which corresponds
+%		'edges8'		a cell of 8-connected edge maps, each of which 
+%			corresponds to a single cell.
+%		'exedge' 'exedge4'	an external edge mask, 1 indicating the edge pixel,
+%			0 otherwise.
+%		'exedge8'		an external 8 connected edge mask, 1 indicating the edge
+%			pixel, 0 otherwise.
+%		'exedges' ¡¯exedges4'	a cell of external edge maps, each of which 
+%			corresponds to a single cell.
+%		'exedges8'		a cell of external edge maps, each of which corresponds 
 %			to a single cell.
 %		'h' 'hi'		for intensity in H channel (hematoxylin)
 %		'e'	'ei'		for intensity in E channel (eosin)
@@ -200,45 +207,67 @@ elseif strcmpi(imtype, 'smask')
 		im(data.tmp(i).BW) = true;
 	end
 
-elseif strcmpi(imtype, 'edges')
-	% cell of edge maps, each of which corresponds to a single cell
-	filename = strcat(imagelist(imid).fullpath, '.mat');
-	data = load(filename);
-	nim = numel(data.tmp);
-	im = cell(1, nim);	
-	for i = 1 : nim
-		im{i} = false(size(data.tmp(i).BW));
-		b = bwboundaries(data.tmp(i).BW, 8, 'noholes');
-		for j = 1 : numel(b)
-			ind = sub2ind(size(data.tmp(i).BW), b{j}(:, 1), b{j}(:, 2));
-			im{i}(ind) = true;
-		end
-	end
-	
-elseif strcmpi(imtype, 'edge')
+elseif strcmpi(imtype, 'edge') || strcmpi(imtype, 'edge4')
 	% edge map
 	filename = strcat(imagelist(imid).fullpath, '.mat');
 	data = load(filename);
 	nim = numel(data.tmp);
 	im = false(size(data.tmp(1).BW));
 	for i = 1 : nim
-		b = bwboundaries(data.tmp(i).BW, 8, 'noholes');
-		for j = 1 : numel(b)
-			ind = sub2ind(size(data.tmp(1).BW), b{j}(:, 1), b{j}(:, 2));
-			im(ind) = true;
-		end
+		b = bwperim(data.tmp(i).BW);
+		im(b) = true;
 	end
 	
-elseif strcmpi(imtype, 'exedge')
+elseif strcmpi(imtype, 'edge8')
+	% 8-connected edge map
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = false(size(data.tmp(1).BW));
+	for i = 1 : nim
+		b = bwperim(data.tmp(i).BW, 8);
+		im(b) = true;
+	end
+	
+elseif strcmpi(imtype, 'edges') || strcmpi(imtype, 'edges4')
+	% cell of edge maps, each of which corresponds to a single cell
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = cell(1, nim);	
+	for i = 1 : nim
+		im{i} = bwperim(data.tmp(i).BW);
+	end
+
+elseif strcmpi(imtype, 'edges8')
+	% cell of 8-connected edge maps, each of which corresponds to a single cell
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = cell(1, nim);	
+	for i = 1 : nim
+		im{i} = bwperim(data.tmp(i).BW, 8);
+	end
+	
+elseif strcmpi(imtype, 'exedge') || strcmpi(imtype, 'exedge4')
 	% external edge map
 	filename = strcat(imagelist(imid).fullpath, '.mat');
 	data = load(filename);
 	nim = numel(data.tmp);
 	im = false(size(data.tmp(1).BW));
 	for i = 1 : nim
-		mask = data.tmp(i).BW;
-		mask2 = imdilate(data.tmp(i).BW, strel('square', 3));
-		b = xor(mask2, mask);
+		b = bwperim(~data.tmp(i).BW);
+		im(b) = true;
+	end
+	
+elseif strcmpi(imtype, 'exedge8')
+	% external 8-connected edge map
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = false(size(data.tmp(1).BW));
+	for i = 1 : nim
+		b = bwperim(~data.tmp(i).BW, 8);
 		im(b) = true;
 	end
 	
@@ -250,11 +279,19 @@ elseif strcmpi(imtype, 'exedges')
 	im = cell(1, nim);
 	
 	for i = 1 : nim
-		im{i} = false(size(data.tmp(1).BW));
-		mask = data.tmp(i).BW;
-		mask2 = imdilate(data.tmp(i).BW, strel('square', 3));
-		b = xor(mask2, mask);
-		im{i}(b)= true;
+		im{i} = bwperim(~data.tmp(1).BW);
+	end
+	
+elseif strcmpi(imtype, 'exedges8')
+	% cell of external 8-connected edge maps, each of which corresponds to a 
+	% single cell
+	filename = strcat(imagelist(imid).fullpath, '.mat');
+	data = load(filename);
+	nim = numel(data.tmp);
+	im = cell(1, nim);
+	
+	for i = 1 : nim
+		im{i} = bwperim(~data.tmp(1).BW, 8);
 	end
 	
 else
@@ -303,5 +340,12 @@ elseif ischar(varargin) && strcmpi(varargin, 'region')
 	[rs, cs] = find(mask > 0);
 	minr = min(rs); maxr = max(rs);
 	minc = min(cs); maxc = max(cs);
-	im = im(minr : maxr, minc : maxc, :);
+	
+	if iscell(im)
+		for i = 1 : numel(im)
+			im{i} = im{i}(minr : maxr, minc : maxc, :);
+		end
+	else
+		im = im(minr : maxr, minc : maxc, :);
+	end
 end
