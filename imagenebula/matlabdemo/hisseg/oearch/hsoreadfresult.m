@@ -1,8 +1,8 @@
-function [fresult] = hsofilterimage(imid, imtype, imregion, sigma, ...
+function [fresult] = hsoreadfresult(imid, imtype, imregion, sigma, ...
 	s, support, ntheta, derivative, hilbert, savefim)
-%HSOFILTERIMAGE filter the image using the arc OE kernel.
+%HSOREADFRESULT reads the filter result from the filter result directory.
 %
-%[FIM] = HSOFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
+%[FIM] = HSOREADFRESULT(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
 %	DERIVATIVE, HILBERT, SAVEFIM)
 %
 % INPUT
@@ -139,46 +139,6 @@ if ~savefim
 	end	
 end
 
-%% Read image
-im = hsreadimage(imid, imtype, imregion);
-
-%% Construct filter kernels
-kernels = filterbankoearccache(sigma, s, support, ntheta, derivative, hilbert);
-
-%% Filter image
-nr = numel(s);
-fim = cell(ntheta, nr);
-for itheta = 1 : ntheta
-	for ir = 1 : nr
-		fprintf('Filter image theta:%02d/%02d radius:%02d/%02d ... ', ...
-			itheta, ntheta, ir, nr);
-		
-		filteredimage = filterapply(im, -kernels.f{itheta, ir});
-		fim{itheta, ir} = filteredimage;
-		fprintf('Done!\n');
-	end
-end
-
-% Result structure
-fresult = struct;
-if savefim,
-	fresult.fim = fim;
-end
-
-%% Find maximum and minimum
-% max and min 
-[fresult.maxfim, imaxfim] = cellmax(fim, 'row');
-[fresult.imaxtheta, fresult.imaxr] = ind2sub(size(fim), imaxfim);
-fresult.immaxtheta = kernels.theta(fresult.imaxtheta);
-fresult.immaxr = kernels.r(fresult.imaxr);
-
-[fresult.minfim, iminfim] = cellmin(fim, 'row');
-[fresult.imintheta, fresult.iminr] = ind2sub(size(fim), iminfim);
-fresult.immintheta = kernels.theta(fresult.imintheta);
-fresult.imminr = kernels.r(fresult.iminr);
-
-% kernels used to filter the image
-fresult.kernels = kernels;
-
-%% Cache the result 
-save(cachefile, 'fresult');
+%% No result found
+error('hsoreadfilterresult:NoResultFoundError',...
+	'Filter result does not exists!');
