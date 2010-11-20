@@ -5,7 +5,13 @@ function [fresult] = hsofilterimage(imid, imtype, imregion, sigma, ...
 %[FIM] = HSOFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
 %	DERIVATIVE, HILBERT, SAVEFIM)
 %
+%[FIM] = HSOFILTERIMAGES(OPTIONS)
+%	where OPTIONS is a struct whose fileds are above arguments.
+%
 % INPUT
+%	[OPTIONS]	- If only one struct argument is specified, all following
+%	arguments are provided as the fields of OPTIONS.
+%
 %	[IMID]		- Image ID
 %
 %	[IMTYPE]	- Image type, 'ccd', 'h', 'e', 'r', 'g', 'b', etc.
@@ -69,16 +75,40 @@ function [fresult] = hsofilterimage(imid, imtype, imregion, sigma, ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
 %% Default argument 
-if (nargin < 1) || isempty(imid), imid = 1; end;
-if (nargin < 2) || isempty(imtype), imtype = 'h'; end;
-if (nargin < 3) || isempty(imregion), imregion = 'region'; end;
-if (nargin < 4) || isempty(sigma), sigma = [6, 1.5]; end;
-if (nargin < 5) || isempty(s), s = (0.15 : -0.005 : 0); end;
-if (nargin < 6) || isempty(support), support = 5; end;
-if (nargin < 7) || isempty(ntheta), ntheta = 24; end;
-if (nargin < 8) || isempty(derivative), derivative = 2; end;
-if (nargin < 9) || isempty(hilbert), hilbert = 1; end;
-if (nargin < 10) || isempty(savefim), savefim = false; end;
+if (nargin == 1) && isstruct(imid)
+	options = imid;
+	if isfield(options, 'imid'), imid = options.imid; 
+	else imid = 1; end;
+	if isfield(options, 'imtype'), imtype = options.imtype; 
+	else imtype = 'h'; end;
+	if isfield(options, 'imregion'), imregion = options.imregion;
+	else imregion = [50,50]; end;
+	if isfield(options, 'sigma'), sigma = options.sigma;
+	else sigma = [6, 1.5]; end;
+	if isfield(options, 's'), s = options.s;
+	else s = (0.15 : -0.005 : 0); end;
+	if isfield(options, 'support'), support = options.support;
+	else support = 5; end;
+	if isfield(options, 'ntheta'), ntheta = options.ntheta;
+	else ntheta = 24; end;
+	if isfield(options, 'derivative'), derivative = options.derivative;
+	else derivative = 2; end;
+	if isfield(options, 'hilbert'), hilbert = options.hilbert;
+	else hilbert = 1; end;
+	if isfield(options, 'savefim'), savefim = options.savefim;
+	else savefim = false; end;
+else
+	if (nargin < 1) || isempty(imid), imid = 1; end;
+	if (nargin < 2) || isempty(imtype), imtype = 'h'; end;
+	if (nargin < 3) || isempty(imregion), imregion = [50,50]; end;
+	if (nargin < 4) || isempty(sigma), sigma = [6, 1.5]; end;
+	if (nargin < 5) || isempty(s), s = (0.15 : -0.005 : 0); end;
+	if (nargin < 6) || isempty(support), support = 5; end;
+	if (nargin < 7) || isempty(ntheta), ntheta = 24; end;
+	if (nargin < 8) || isempty(derivative), derivative = 2; end;
+	if (nargin < 9) || isempty(hilbert), hilbert = 1; end;
+	if (nargin < 10) || isempty(savefim), savefim = false; end;
+end
 
 %% Cache directory
 cachepath = hsofilterresultpath();
