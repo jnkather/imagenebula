@@ -1,12 +1,18 @@
 function hsofilterimages(imid, imtype, imregion, sigma, ...
-	s, support, ntheta, derivative, hilbert)
-%HSOFILTERIMAGE filter all images using the arc OE kernel and save them to
+	s, support, ntheta, derivative, hilbert, savefim)
+%HSOFILTERIMAGES filter all images using the arc OE kernel and save them to
 % cache files.
 %
-% HSOFILTERIMAGE(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
+% HSOFILTERIMAGES(IMID, IMTYPE, IMREGION, SIGMA, S, SUPPORT, NTHETA,
 %	DERIVATIVE, HILBERT)
 %
+% HSOFILTERIMAGES(OPTIONS)
+%	where OPTIONS is a struct whose fileds are above arguments.
+%
 % INPUT
+%	[OPTIONS]	- If only one struct argument is specified, all following
+%	arguments are provided as the fields of OPTIONS.
+%
 %	[IMID]		- Image id, could be a single IDs or vector of IDs.
 %
 %	[IMTYPE]	- Image type, 'ccd', 'h', 'e', 'r', 'g', 'b', etc.
@@ -48,6 +54,9 @@ function hsofilterimages(imid, imtype, imregion, sigma, ...
 %	calculate the filter kernel banks, all corresponding filter responses will
 %	be calculated and cached.
 %
+%	[SAVEFIM]	- Save intermediate filter results in the final result file?
+%	Default is 0 (logical false), which means do not save filter results in the
+%	final result file.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,22 +88,48 @@ function hsofilterimages(imid, imtype, imregion, sigma, ...
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&
 
-%% Default argument 
-if (nargin < 1) || (numel(imid) <= 0), imid = (1:58); end;
-if (nargin < 2) || (numel(imtype) <= 0), imtype = 'h'; end;
-if (nargin < 3) || (numel(imregion) <= 0), imregion = [50, 50]; end;
-if (nargin < 4) || (numel(sigma) <= 0), sigma = [6, 1.5]; end;
-if (nargin < 5) || (numel(s) <= 0), s = (0.15 : -0.005 : 0); end;
-if (nargin < 6) || (numel(support) <= 0), support = 5; end;
-if (nargin < 7) || (numel(ntheta) <= 0), ntheta = 24; end;
-if (nargin < 8) || (numel(derivative) <= 0), derivative = 2; end;
-if (nargin < 9) || (numel(hilbert) <= 0), hilbert = (0:1); end;
+%% Default argument
+if (nargin == 1) && isstruct(imid)
+	options = imid;
+	if isfield(options, 'imid'), imid = options.imid; 
+	else imid = 1; end;
+	if isfield(options, 'imtype'), imtype = options.imtype; 
+	else imtype = 'h'; end;
+	if isfield(options, 'imregion'), imregion = options.imregion;
+	else imregion = [50,50]; end;
+	if isfield(options, 'sigma'), sigma = options.sigma;
+	else sigma = [6, 1.5]; end;
+	if isfield(options, 's'), s = options.s;
+	else s = (0.15 : -0.005 : 0); end;
+	if isfield(options, 'support'), support = options.support;
+	else support = 5; end;
+	if isfield(options, 'ntheta'), ntheta = options.ntheta;
+	else ntheta = 24; end;
+	if isfield(options, 'derivative'), derivative = options.derivative;
+	else derivative = 2; end;
+	if isfield(options, 'hilbert'), hilbert = options.hilbert;
+	else hilbert = (0:1); end;
+	if isfield(options, 'savefim'), savefim = options.savefim;
+	else savefim = false; end;
+else
+	if (nargin < 1) || (numel(imid) <= 0), imid = 1; end;
+	if (nargin < 2) || (numel(imtype) <= 0), imtype = 'h'; end;
+	if (nargin < 3) || (numel(imregion) <= 0), imregion = [50, 50]; end;
+	if (nargin < 4) || (numel(sigma) <= 0), sigma = [6, 1.5]; end;
+	if (nargin < 5) || (numel(s) <= 0), s = (0.15 : -0.005 : 0); end;
+	if (nargin < 6) || (numel(support) <= 0), support = 5; end;
+	if (nargin < 7) || (numel(ntheta) <= 0), ntheta = 24; end;
+	if (nargin < 8) || (numel(derivative) <= 0), derivative = 2; end;
+	if (nargin < 9) || (numel(hilbert) <= 0), hilbert = (0:1); end;
+	if (nargin < 10) || isempty(savefim), savefim = false; end;	
+end
 
 %% Paramter conversion
 if ~iscell(imtype), imtype = {imtype}; end;
 if ~iscell(imregion), imregion = {imregion}; end;
 if ~iscell(sigma), sigma = {sigma}; end;
 if ~iscell(s), s = {s}; end;
+if ~iscell(savefim), savefim = {savefim}; end;
 
 %% Counts
 nim = numel(imid);
@@ -106,8 +141,9 @@ nsupport = numel(support);
 nntheta = numel(ntheta);
 nderivative = numel(derivative);
 nhilbert = numel(hilbert);
+nsavefim = numel(savefim);
 n = nim * nimtype * nimregion * nsigma * ns * nsupport * nntheta * ...
-	nderivative * nhilbert;
+	nderivative * nhilbert * nsavefim;
 
 if n <= 0
 	error('oearcfilterimages:CountError', ...
@@ -134,12 +170,14 @@ for isupport = 1 : nsupport
 for intheta = 1 : nntheta
 for iderivative = 1 : nderivative
 for ihilbert = 1 : nhilbert
+for isavefim = 1 : nsavefim
 	i = i + 1;
 	fprintf('Beginning iteration %d / %d ...\n', i, n);
 	hsofilterimage(imid(iim), imtype{iimtype}, imregion{iimregion}, ...
 		sigma{isigma}, s{is}, support(isupport), ntheta(intheta), ...
-		derivative(iderivative), hilbert(ihilbert), true);
+		derivative(iderivative), hilbert(ihilbert), savefim{isavefim});
 	fprintf('Iteration %d / %d Done!\n', i, n);
+end
 end
 end
 end

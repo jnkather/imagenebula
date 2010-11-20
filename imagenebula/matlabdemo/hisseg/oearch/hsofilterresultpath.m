@@ -40,13 +40,10 @@ function [path] = hsofilterresultpath()
 
 %% Full path to the filter cache directory
 % Configure this on different computers
-if strcmpi(computer, 'glnxa64')
+if strcmpi(computer, 'glnxa64') || strcmpi(computer, 'glnx86')
 	% Linux System
 	path = '/media/work/Active/filteredresults/';
 else
 	% Windows System
 	path = 'E:/Active/filteredresults/';
-	% mfile = mfilename('fullpath');
-	% cachepath = fileparts(mfile);
-	% path = [cachepath, '/cache/'];
 end
