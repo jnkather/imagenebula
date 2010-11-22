@@ -192,6 +192,7 @@ for id = imid
 	for edget = edgetype
 		% Edge map
 		options.edgemap = hsreadimage(id, edget, imregion);
+		options.checkedgels = true;
 
 		% Extract Edgels
 		edgels = hsoextractedgels(options);

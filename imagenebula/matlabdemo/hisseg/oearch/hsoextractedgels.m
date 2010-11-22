@@ -98,20 +98,29 @@ if (nargin == 1) && isstruct(edgemap)
 	% Input through arguments
 	if isfield(options, 'edgemap'), edgemap = options.edgemap;
 	else edgemap = []; end;
+	
 	if isfield(options, 'imstrength'), imstrength = options.imstrength;
 	else imstrength = []; end;
+	
 	if isfield(options, 'imr'), imr = options.imr;
 	else imr = []; end;
+	
 	if isfield(options, 'imtheta'), imtheta = options.imtheta;
 	else imtheta = []; end;
+	
 	if isfield(options, 'centroids'), centroids = options.centroids;
 	else centroids = []; end;
+	
+	if isfield(options, 'checkedgels'), checkedgels = options.checkedgels;
+	else checkedgels = false; end;
+	
 else
 	inputstruct = false;
 	if nargin < 2, imstrength = []; end;
 	if nargin < 3, imr = []; end;
 	if nargin < 4, imtheta = []; end;
 	if nargin < 5, centroids = []; end;
+	checkedgels = false;
 end
 
 %% Argument processing
@@ -164,12 +173,33 @@ if iscell(edgemap)
 	rows = []; cols = []; inds = [];
 	cencoords = [];
 	for i = 1 : numel(edgemap)
+		% Extract edgels
 		[row, col] = find(edgemap{i} > 0);
 		n = numel(row);
-		cencoords = [cencoords; ones(n, 1) * centroids(i, :)]; %#ok<AGROW>
+		cencoord = ones(n, 1) * centroids(i, :);
+		cencoords = [cencoords; cencoord]; %#ok<AGROW>
 		rows = [rows; row]; %#ok<AGROW>
 		cols = [cols; col]; %#ok<AGROW>
 		inds = [inds; sub2ind(size(edgemap{i}), row, col)]; %#ok<AGROW>
+		
+		% Check edgels
+		if checkedgels
+			relceny = row - cencoord(:, 1);
+			relcenx = cencoord(:, 2) - col;
+			[relcentheta, relcenrho] = cart2pol(relcenx, relceny);
+			thetas = imtheta(sub2ind(size(edgemap{i}), row, col));
+			relcentheta = relcentheta - thetas;
+			[relcenx, relceny] = pol2cart(relcentheta, relcenrho);
+			[relcentheta, relcenrho] = cart2pol(relcenx, relceny);
+			% Check RHO, rho should not exceeds 30.
+			ci = find(relcenrho > 30);
+			if numel(ci) > 0
+				for j = ci
+					fprintf('RHO Error: cellid=%03d, r=%03d, c=%03d, cr=%03d, cc=%03d, rho=%3.1f, theta=%1.3f\n', ...
+						i, row(j), col(j), cencoord(j, 1), cencoord(j, 2), relcenrho(j), relcentheta(j));
+				end
+			end
+		end
 	end
 	coords = [rows, cols];
 else

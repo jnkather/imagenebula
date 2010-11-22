@@ -211,4 +211,9 @@ fresult.imminr = kernels.r(fresult.iminr);
 fresult.kernels = kernels;
 
 %% Cache the result 
+cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d-%d.mat', ...
+	imid, upper(imtype), upper(imregionstr), ...
+	sigma(1), sigma(2), max(s), min(s), numel(s), ...
+	support, ntheta, derivative, hilbert, savefim);
+cachefile = fullfile(cachepath, cachefile);
 save(cachefile, 'fresult');
