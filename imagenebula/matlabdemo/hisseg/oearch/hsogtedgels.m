@@ -1,4 +1,4 @@
-function [coords, strengths, rs, thetas, relcencart, relcenpol] = hsogtedgels( ...
+function [coords, strengths, rs, thetas, relcencart, relcenpol, r, imids] = hsogtedgels( ...
 	options)
 %HSOGTEDGELs extracts edgels (edge element) from the ground truth images.
 %
@@ -16,7 +16,7 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = hsogtedgels( .
 %	and set it to true.
 %	Note: All following fields should be named in lower case.
 %
-%	[IMID]		- Image ID
+%	[IMID]		- Image ID, could be a single ID or a vector of IDs
 %
 %	[IMTYPE]	- Image type, 'ccd', 'h', 'e', 'r', 'g', 'b', etc.
 %	Default is 'h'.
@@ -45,6 +45,11 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = hsogtedgels( .
 %	Default is 0 (logical false), which means do not perform Hilbert 
 %	transformation in Y direction.
 %
+%	[OUTPUTSTRUCT]	- Set to true if you want this function return the results
+%	as a struct.
+%
+%	[EDGETYPE]	- Edge types, a cell of string determine the edge type to
+%	extract. 'edges' for internal edges, 'exedges' for external edges.
 %
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a
@@ -52,7 +57,8 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = hsogtedgels( .
 %
 %	STRENGTHS	- Column vector represents strengths of each edgel.
 %
-%	RS			- Column vector represents radius of each edgel.
+%	RS			- Column vector represents radius index of each edgel. The
+%		radius value can be retrieved from output vector R using radius index.
 %
 %	THETAS		- Column vector represents orientation of each edgel.
 %
@@ -61,6 +67,11 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = hsogtedgels( .
 %
 %	RELCENPOL	- Polar coordiantes of each correspondings centroids relatively
 %		to the edgels. Each row represents a edgel.
+%
+%	R			- Vector containing all possible values of radius. Get the
+%		radius of each edgel from this vector using the index from RS.
+%
+%	IMIDS		- The ID of images from which the edgels are extracted.
 %
 %	[OUTPUTSTRUCT]	- Struct whose fields are above outputs. Only output struct
 %		when OPTIONS.outputstruct is set to true.
@@ -131,6 +142,12 @@ else hilbert = 1; end;
 if isfield(options, 'edgetype'), edgetype = options.edgetype;
 else edgetype = {'edges', 'exedges'}; end;
 if ~iscell(edgetype), edgetype = {edgetype}; end;
+for edget = edgetype
+	if ~strcmpi('edges', edget) && ~strcmpi('exedges', edget)
+		error('hsogtedgel:InputArgumentError', ...
+			'EDGETYPE should be either ''edges'' or ''exedges''');
+	end
+end
 
 if outputstruct && nargout > 1
 	error('hsogtedgels:OutputArgumentError',...
@@ -186,7 +203,7 @@ for id = imid
 		thetas = [thetas; edgels.thetas]; %#ok<AGROW>
 		relcencart = [relcencart; edgels.relcencart]; %#ok<AGROW>
 		relcenpol = [relcenpol; edgels.relcenpol]; %#ok<AGROW>
-		imids = [imids; ones(numel(edgels.rs), 1) * id];
+		imids = [imids; ones(numel(edgels.rs), 1) * id]; %#ok<AGROW>
 	end
 	
 	% Print states
