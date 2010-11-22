@@ -277,9 +277,10 @@ elseif strcmpi(imtype, 'exedges')
 	data = load(filename);
 	nim = numel(data.tmp);
 	im = cell(1, nim);
-	
 	for i = 1 : nim
 		im{i} = bwperim(~data.tmp(i).BW);
+		im{i}(:, 1) = false; im{i}(:, size(im{i}, 2)) = false;
+		im{i}(1, :) = false; im{i}(size(im{i}, 1), :) = false;
 	end
 	
 elseif strcmpi(imtype, 'exedges8')
