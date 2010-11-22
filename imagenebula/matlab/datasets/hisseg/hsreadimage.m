@@ -279,7 +279,7 @@ elseif strcmpi(imtype, 'exedges')
 	im = cell(1, nim);
 	
 	for i = 1 : nim
-		im{i} = bwperim(~data.tmp(1).BW);
+		im{i} = bwperim(~data.tmp(i).BW);
 	end
 	
 elseif strcmpi(imtype, 'exedges8')
@@ -291,7 +291,7 @@ elseif strcmpi(imtype, 'exedges8')
 	im = cell(1, nim);
 	
 	for i = 1 : nim
-		im{i} = bwperim(~data.tmp(1).BW, 8);
+		im{i} = bwperim(~data.tmp(i).BW, 8);
 	end
 	
 else
