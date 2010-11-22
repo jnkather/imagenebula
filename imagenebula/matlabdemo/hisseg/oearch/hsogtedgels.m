@@ -128,6 +128,10 @@ else derivative = 2; end;
 if isfield(options, 'hilbert'), hilbert = options.hilbert;
 else hilbert = 1; end;
 
+if isfield(options, 'edgetype'), edgetype = options.edgetype;
+else edgetype = {'edges', 'exedges'}; end;
+if ~iscell(edgetype), edgetype = {edgetype}; end;
+
 if outputstruct && nargout > 1
 	error('hsogtedgels:OutputArgumentError',...
 		'You should only specify one output if struct output is desired!');
@@ -137,26 +141,30 @@ end
 % Prepare outputs
 coords = [];
 strengths = [];
-rs = int32([]);
+rs = uint16([]);
 thetas = [];
 relcencart = [];
 relcenpol = [];
+imids = uint8([]);
 % Extract
 for id = imid
+
+	% Print states
+	fprintf('Start extracting edgels from [%02d] / [%02d] ... ', id, numel(imid));
+
 	% Prepare input options
 	options = struct;
 	options.outputstruct = true;
-	
-	% Edge map
-	options.edgemap = hsreadimage(id, 'edges', imregion);
-	fresult = hsoreadfresult(id, imtype, imregion, sigma, s, support, ntheta, ...
-		derivative, hilbert, false);
-	
+
 	% Masks
 	masks = hsreadimage(id, 'masks', imregion);
 	options.centroids = bwcentroid(masks);
 	clear masks;
 	
+	% OE Filter strength
+	fresult = hsoreadfresult(id, imtype, imregion, sigma, s, support, ntheta, ...
+		derivative, hilbert, false);
+
 	% Strenght, radius and theta
 	options.imstrength = fresult.maxfim;
 	options.imr = int32(fresult.imaxr);
@@ -164,16 +172,25 @@ for id = imid
 	r = fresult.kernels.r;
 	clear fresult;
 	
-	% Extract Edgels
-	edgels = hsoextractedgels(options);
+	for edget = edgetype
+		% Edge map
+		options.edgemap = hsreadimage(id, edget, imregion);
 
-	% Add to outputs
-	coords = [coords; edgels.coords]; %#ok<AGROW>
-	strengths = [strengths; edgels.strengths]; %#ok<AGROW>
-	rs = [rs; edgels.rs]; %#ok<AGROW>
-	thetas = [thetas; edgels.thetas]; %#ok<AGROW>
-	relcencart = [relcencart; edgels.relcencart]; %#ok<AGROW>
-	relcenpol = [relcenpol; edgels.relcenpol]; %#ok<AGROW>
+		% Extract Edgels
+		edgels = hsoextractedgels(options);
+
+		% Add to outputs
+		coords = [coords; edgels.coords]; %#ok<AGROW>
+		strengths = [strengths; edgels.strengths]; %#ok<AGROW>
+		rs = [rs; uint16(edgels.rs)]; %#ok<AGROW>
+		thetas = [thetas; edgels.thetas]; %#ok<AGROW>
+		relcencart = [relcencart; edgels.relcencart]; %#ok<AGROW>
+		relcenpol = [relcenpol; edgels.relcenpol]; %#ok<AGROW>
+		imids = [imids; ones(numel(edgels.rs), 1) * id];
+	end
+	
+	% Print states
+	fprintf('Extracted!\n');	
 end
 
 %% Output struct if desired
@@ -185,5 +202,6 @@ if outputstruct
 	output.relcencart = relcencart;
 	output.relcenpol = relcenpol;
 	output.r = r;
+	output.imids = imids;
 	coords = output;
 end

@@ -144,7 +144,7 @@ if exist(cachefile, 'file') == 2
 	end;
 	
 	fprintf('Found cached file, retrieving ... ');
-	f = load(cachefile);
+	f = load(cachefile);	
 	fresult = f.fresult;
 	fprintf('Cache retrieved!\n');
 	return;
@@ -167,7 +167,16 @@ if ~savefim
 
 		fprintf('Found alternative cached file, retrieving ... ');
 		f = load(cachefile);
+		
+		fprintf('saving ... ');
 		fresult = rmfield(f.fresult, 'fim');
+		cachefile = sprintf('ARC%d%s-%s-%.1f-%.1f-%.3f-%.3f-%d-%.1f-%d-%d-%d-%d.mat', ...
+			imid, upper(imtype), upper(imregionstr), ...
+			sigma(1), sigma(2), max(s), min(s), numel(s), ...
+			support, ntheta, derivative, hilbert, savefim);
+		cachefile = fullfile(cachepath, cachefile);
+		save(cachefile, 'fresult');
+		
 		fprintf('Cache retrieved!\n');
 		return;
 	end	
