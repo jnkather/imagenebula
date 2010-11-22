@@ -11,6 +11,7 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %[OUTPUTSTRUCT] = HSOEXTRACTEDGELS(OPTIONS)
 %	when OPTIONS.outputstruct is set to true.
 %
+%
 % INPUT
 %	OPTIONS		- If only one struct argument is specified, all following
 %	arguments are provided as the fields of OPTIONS.
@@ -38,6 +39,7 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %		edge maps.
 %	
 %	[OUTPUTSTRUCT]	- Output a struct if this parameter is set to true.
+%
 %
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a
@@ -93,6 +95,7 @@ if (nargin == 1) && isstruct(edgemap)
 	inputstruct = true;
 	options = edgemap;
 	
+	% Input through arguments
 	if isfield(options, 'edgemap'), edgemap = options.edgemap;
 	else edgemap = []; end;
 	if isfield(options, 'imstrength'), imstrength = options.imstrength;
