@@ -56,6 +56,8 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %	[YRANGE]		- 2-element vector, specifying the maximum and minimum y
 %		value of valid edgels. See notes on THETARANGE.
 %
+%	[ONLYSALIENT]	- Extract only salient edgels. Salient edgels are groundtruth 
+%		edge points which passed the non-maximum suppression step.
 %
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a
@@ -146,6 +148,8 @@ if (nargin == 1) && isstruct(edgemap)
 	if isfield(options, 'yrange'), yrange = options.yrange;
 	else yrange = []; end;
 	
+	if isfield(options, 'onlysalient'), onlysalient = options.onlysalient;
+	else onlysalient = true; end;
 else
 	% Arugment input
 	inputstruct = false;
@@ -157,7 +161,8 @@ else
 	thetarange = [];
 	rhorange = [];
 	xrange = [];
-	yrange = [];	
+	yrange = [];
+	onlysalient = false;
 end
 
 %% Argument processing
@@ -320,8 +325,15 @@ if ~isempty(yrange)
 	end
 end
 
+% Remove non-salient edgels
+if onlysalient
+	meanstrength = mean(imstrength(:));
+	nmsstrength = nonmaxsup(imstrength, imtheta, 1.5);
+	svi = (nmsstrength(inds) < meanstrength);
+end
+
 % Index of edgels violating range rules
-vi = thetavi | rhovi | xvi | yvi;
+vi = thetavi | rhovi | xvi | yvi | svi;
 
 % Remove edgels violating range rules
 coords(vi, :) = [];

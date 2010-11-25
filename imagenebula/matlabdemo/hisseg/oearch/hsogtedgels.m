@@ -53,6 +53,10 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol, r, imids, cellid
 %
 %	[CHECKEDGELS]	- Set to true if you want the function check edgels.
 %
+%	[ONLYSALIENT]	- Set to true to extract only salient edgels.
+%		Salient edgels are edge points which pass the non-maximum suppression
+%		step.
+%
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a
 %		edgel.
@@ -193,7 +197,7 @@ for id = imid
 
 	% Strenght, radius and theta
 	options.imstrength = fresult.maxfim;
-	options.imr = int32(fresult.imaxr);
+	options.imr = uint32(fresult.imaxr);
 	options.imtheta = fresult.immaxtheta;
 	r = fresult.kernels.r;
 	clear fresult;
