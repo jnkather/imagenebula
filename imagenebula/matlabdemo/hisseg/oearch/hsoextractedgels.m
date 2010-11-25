@@ -39,6 +39,22 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %		edge maps.
 %	
 %	[OUTPUTSTRUCT]	- Output a struct if this parameter is set to true.
+%		Note: this argument can only be specified as a field of OPTIONS.
+%
+%	[THETARANGE]	- 2-element vector, specifying the maximum and minimum theta 
+%		value of valid edgels. There is no order restriction on the elements of
+%		the vector, that is, the maximum will be the upper bound and the minimum
+%		element will be the lower bound.
+%		Note: this argument can only be specified as a field of OPTIONS.
+%
+%	[RHORANGE]		- 2-element vector, specifying the maximum and minimum rho
+%		value of valid edgels. See notes on THETARANGE.
+%
+%	[XRANGE]		- 2-element vector, specifying the maximum and minimum x
+%		value of valid edgels. See notes on THETARANGE.
+%
+%	[YRANGE]		- 2-element vector, specifying the maximum and minimum y
+%		value of valid edgels. See notes on THETARANGE.
 %
 %
 % OUTPUT
@@ -57,6 +73,8 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %	RELCENPOL	- Polar coordiantes of each correspondings centroids relatively
 %		to the edgels. Each row represents a edgel.
 %
+%	CELLIDS		- ID vector of the cell which the edgels belong to.
+%	
 %	[OUTPUTSTRUCT]	- Struct whose fields are above outputs. Only output struct
 %		when OPTIONS.outputstruct is set to true.
 %
@@ -92,6 +110,8 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 
 %% Default argument
 if (nargin == 1) && isstruct(edgemap)
+	% Struct input
+	
 	inputstruct = true;
 	options = edgemap;
 	
@@ -114,13 +134,30 @@ if (nargin == 1) && isstruct(edgemap)
 	if isfield(options, 'checkedgels'), checkedgels = options.checkedgels;
 	else checkedgels = false; end;
 	
+	if isfield(options, 'thetarange'), thetarange = options.thetarange;
+	else thetarange = []; end;
+	
+	if isfield(options, 'rhorange'), rhorange = options.rhorange;
+	else rhorange = []; end;
+	
+	if isfield(options, 'xrange'), xrange = options.xrange;
+	else xrange = []; end;
+	
+	if isfield(options, 'yrange'), yrange = options.yrange;
+	else yrange = []; end;
+	
 else
+	% Arugment input
 	inputstruct = false;
 	if nargin < 2, imstrength = []; end;
 	if nargin < 3, imr = []; end;
 	if nargin < 4, imtheta = []; end;
 	if nargin < 5, centroids = []; end;
 	checkedgels = false;
+	thetarange = [];
+	rhorange = [];
+	xrange = [];
+	yrange = [];	
 end
 
 %% Argument processing
@@ -168,65 +205,132 @@ end
 
 
 %% Extract all edgel coordinates
-if iscell(edgemap)
-	% a cell of edge maps
-	rows = []; cols = []; inds = [];
-	cencoords = [];
-	for i = 1 : numel(edgemap)
-		% Extract edgels
-		[row, col] = find(edgemap{i} > 0);
-		n = numel(row);
-		cencoord = ones(n, 1) * centroids(i, :);
-		cencoords = [cencoords; cencoord]; %#ok<AGROW>
-		rows = [rows; row]; %#ok<AGROW>
-		cols = [cols; col]; %#ok<AGROW>
-		inds = [inds; sub2ind(size(edgemap{i}), row, col)]; %#ok<AGROW>
-		
-		% Check edgels
-		if checkedgels
-			relceny = row - cencoord(:, 1);
-			relcenx = cencoord(:, 2) - col;
-			[relcentheta, relcenrho] = cart2pol(relcenx, relceny);
-			thetas = imtheta(sub2ind(size(edgemap{i}), row, col));
-			relcentheta = relcentheta - thetas;
-			[relcenx, relceny] = pol2cart(relcentheta, relcenrho);
-			[relcentheta, relcenrho] = cart2pol(relcenx, relceny);
-			% Check RHO, rho should not exceeds 30.
-			ci = find(relcenrho > 30);
-			if numel(ci) > 0
-				for j = ci
-					fprintf('RHO Error: cellid=%03d, r=%03d, c=%03d, cr=%03d, cc=%03d, rho=%3.1f, theta=%1.3f\n', ...
-						i, row(j), col(j), cencoord(j, 1), cencoord(j, 2), relcenrho(j), relcentheta(j));
-				end
-			end
-		end
-	end
-	coords = [rows, cols];
-else
-	% a single edge map
-	[rows, cols] = find(edgemap > 0);
-	n = numel(rows);
-	cencoords = ones(n, 1) * centroids;
-	inds = sub2ind(size(edgemap), rows, cols);
-	coords = [rows, cols];
+% If input edgemap is not a cell of edgemaps, convert it to a cell of single
+% edgemap
+if ~iscell(edgemap), edgemap = {edgemap}; end;
+% Prepare output containers
+rows = uint16([]);		% Row index of the edgel
+cols = uint16([]);		% Col index of the edgel
+inds = uint32([]);		% Index of the edgel
+cencoords = [];			% Centroid coordinates corresponding to the edgel
+cellids = uint16([]);	% Index of the cell which the edgel belongs to 
+% Extract edgels from edgemaps
+for i = 1 : numel(edgemap)
+	% Extract edgels from a single cell
+	[row, col] = find(edgemap{i} > 0);
+	n = numel(row);
+	cencoord = ones(n, 1) * centroids(i, :);
+	cencoords = [cencoords; cencoord]; %#ok<AGROW>
+	rows = [rows; row]; %#ok<AGROW>
+	cols = [cols; col]; %#ok<AGROW>
+	inds = [inds; sub2ind(size(edgemap{i}), row, col)]; %#ok<AGROW>
+	cellids = [cellids; ones(n, 1) * i]; %#ok<AGROW>
 end
+coords = [rows, cols];
+
 
 %% Extract strength, radius and thetas
 if ~isempty(imstrength), strengths = imstrength(inds); end;
 if ~isempty(imr), rs = imr(inds); end;
 if ~isempty(imtheta), thetas = imtheta(inds); end;
 
-%% Centroid relative to the edgel
-relceny = coords(:, 1) - cencoords(:, 1);
-relcenx = cencoords(:, 2) - coords(:, 2);
+
+%% Calculate centroid coordinate relative to the edgel
+relceny = double(coords(:, 1)) - cencoords(:, 1);
+relcenx = cencoords(:, 2) - double(coords(:, 2));
 [relcentheta, relcenrho] = cart2pol(relcenx, relceny);
 relcentheta = relcentheta - thetas;
-%relcentheta(relcentheta > pi) = relcentheta(relcentheta > pi) - 2*pi;
 [relcenx, relceny] = pol2cart(relcentheta, relcenrho);
 [relcentheta, relcenrho] = cart2pol(relcenx, relceny);
 
+% Centroid coordinates relative to the edgels in Cartesian
 relcencart = [relcenx, relceny];
+% Centroid coordinates relative to the edgels in Polar
 relcenpol = [relcentheta, relcenrho];
+
+
+%% Check and remove edgels violating range rules
+nedgels = size(coords, 1);
+
+% Check and remove edgels vialating theta range rules
+thetavi = false(nedgels, 1);
+if ~isempty(thetarange)
+	mintheta = min(thetarange(:));
+	maxtheta = max(thetarange(:));
+	thetavi = (relcentheta > maxtheta) | (relcentheta < mintheta);
+	% Check and output
+	if checkedgels && sum(thetavi) > 0
+		for jj = 1 : numel(thetavi)
+			j = thetavi(jj);
+			fprintf('THETA Error: cellid=%03d, r=%03d, c=%03d, cr=%03d, cc=%03d, rho=%3.1f, theta=%1.3f, strength=%f\n', ...
+				cellids(j), row(j), col(j), cencoord(j, 1), cencoord(j, 2), ...
+				relcenrho(j), relcentheta(j), imstrength(row(j), col(j)));
+		end
+	end
+end
+
+% Check and remove edgels vialating rho range rules
+rhovi = false(nedgels, 1);
+if ~isempty(rhorange)
+	minrho = min(rhorange(:));
+	maxrho = max(rhorange(:));
+	rhovi = (relcenrho > maxrho) | (relcenrho < minrho);
+	% Check and output
+	if checkedgels && sum(rhovi) > 0
+		for jj = 1 : numel(rhovi)
+			j = rhovi(jj);
+			fprintf('RHO Error: cellid=%03d, r=%03d, c=%03d, cr=%03d, cc=%03d, rho=%3.1f, theta=%1.3f, strength=%f\n', ...
+				cellids(j), row(j), col(j), cencoord(j, 1), cencoord(j, 2), ...
+				relcenrho(j), relcentheta(j), imstrength(row(j), col(j)));
+		end
+	end
+end
+
+% Check and remove edgels vialating X range rules
+xvi = false(nedgels, 1);
+if ~isempty(xrange)
+	minx = min(xrange(:));
+	maxx = max(xrange(:));
+	xvi = (relcenx > maxx) | (relcenx < minx);
+	% Check and output
+	if checkedgels && sum(xvi) > 0
+		for jj = 1 : numel(xvi)
+			j = xvi(jj);
+			fprintf('RHO Error: cellid=%03d, r=%03d, c=%03d, cr=%03d, cc=%03d, rho=%3.1f, theta=%1.3f, strength=%f\n', ...
+				cellids(j), row(j), col(j), cencoord(j, 1), cencoord(j, 2), ...
+				relcenrho(j), relcentheta(j), imstrength(row(j), col(j)));
+		end
+	end
+end
+
+% Check and remove edgels vialating X range rules
+yvi = false(nedgels, 1);
+if ~isempty(yrange)
+	miny = min(yrange(:));
+	maxy = max(yrange(:));
+	yvi = (relceny > maxy) | (relceny < miny);
+	% Check and output
+	if checkedgels && sum(yvi) > 0
+		for jj = 1 : numel(yvi)
+			j = yvi(jj);
+			fprintf('RHO Error: cellid=%03d, r=%03d, c=%03d, cr=%03d, cc=%03d, rho=%3.1f, theta=%1.3f, strength=%f\n', ...
+				cellids(j), row(j), col(j), cencoord(j, 1), cencoord(j, 2), ...
+				relcenrho(j), relcentheta(j), imstrength(row(j), col(j)));
+		end
+	end
+end
+
+% Index of edgels violating range rules
+vi = thetavi | rhovi | xvi | yvi;
+
+% Remove edgels violating range rules
+coords(vi, :) = [];
+strengths(vi, :) = [];
+rs(vi, :) = [];
+thetas(vi, :) = [];
+relcencart(vi, :) = [];
+relcenpol(vi, :) = [];
+cellids(vi, :) = [];
 
 %% Output struct
 if inputstruct && isfield(options, 'outputstruct') 
@@ -238,6 +342,7 @@ if inputstruct && isfield(options, 'outputstruct')
 		outputstruct.thetas = thetas;
 		outputstruct.relcencart = relcencart;
 		outputstruct.relcenpol = relcenpol;
+		outputstruct.cellids = cellids;
 		coords = outputstruct;
 	else
 		error('hsoextractedgels:OutputStructError', ...
