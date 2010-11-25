@@ -90,28 +90,40 @@ function hsofilterimages(imid, imtype, imregion, sigma, ...
 
 %% Default argument
 if (nargin == 1) && isstruct(imid)
+	% Struct Input
 	options = imid;
 	if isfield(options, 'imid'), imid = options.imid; 
 	else imid = 1; end;
+	
 	if isfield(options, 'imtype'), imtype = options.imtype; 
 	else imtype = 'h'; end;
+	
 	if isfield(options, 'imregion'), imregion = options.imregion;
 	else imregion = [50,50]; end;
+	
 	if isfield(options, 'sigma'), sigma = options.sigma;
 	else sigma = [6, 1.5]; end;
+	
 	if isfield(options, 's'), s = options.s;
 	else s = (0.15 : -0.005 : 0); end;
+	
 	if isfield(options, 'support'), support = options.support;
 	else support = 5; end;
+	
 	if isfield(options, 'ntheta'), ntheta = options.ntheta;
 	else ntheta = 24; end;
+	
 	if isfield(options, 'derivative'), derivative = options.derivative;
 	else derivative = 2; end;
+	
 	if isfield(options, 'hilbert'), hilbert = options.hilbert;
 	else hilbert = (0:1); end;
+	
 	if isfield(options, 'savefim'), savefim = options.savefim;
 	else savefim = false; end;
+	
 else
+	% Arguments input
 	if (nargin < 1) || (numel(imid) <= 0), imid = 1; end;
 	if (nargin < 2) || (numel(imtype) <= 0), imtype = 'h'; end;
 	if (nargin < 3) || (numel(imregion) <= 0), imregion = [50, 50]; end;
@@ -122,6 +134,7 @@ else
 	if (nargin < 8) || (numel(derivative) <= 0), derivative = 2; end;
 	if (nargin < 9) || (numel(hilbert) <= 0), hilbert = (0:1); end;
 	if (nargin < 10) || isempty(savefim), savefim = false; end;	
+
 end
 
 %% Paramter conversion

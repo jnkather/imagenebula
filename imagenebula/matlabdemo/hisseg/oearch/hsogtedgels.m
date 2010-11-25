@@ -1,4 +1,4 @@
-function [coords, strengths, rs, thetas, relcencart, relcenpol, r, imids] = hsogtedgels( ...
+function [coords, strengths, rs, thetas, relcencart, relcenpol, r, imids, cellids, edgetypes] = hsogtedgels( ...
 	options)
 %HSOGTEDGELs extracts edgels (edge element) from the ground truth images.
 %
@@ -51,6 +51,8 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol, r, imids] = hsog
 %	[EDGETYPE]	- Edge types, a cell of string determine the edge type to
 %	extract. 'edges' for internal edges, 'exedges' for external edges.
 %
+%	[CHECKEDGELS]	- Set to true if you want the function check edgels.
+%
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a
 %		edgel.
@@ -72,6 +74,11 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol, r, imids] = hsog
 %		radius of each edgel from this vector using the index from RS.
 %
 %	IMIDS		- The ID of images from which the edgels are extracted.
+%
+%	CELLIDS		- The ID of cells from which the edgels are extracted.
+%
+%	EDGETYPES	- The edgetypes of edgels, true indicating internal edges, while
+%		false indicating external edges.
 %
 %	[OUTPUTSTRUCT]	- Struct whose fields are above outputs. Only output struct
 %		when OPTIONS.outputstruct is set to true.
@@ -141,6 +148,7 @@ else hilbert = 1; end;
 
 if isfield(options, 'edgetype'), edgetype = options.edgetype;
 else edgetype = {'edges', 'exedges'}; end;
+
 if ~iscell(edgetype), edgetype = {edgetype}; end;
 for edget = edgetype
 	if ~strcmpi('edges', edget) && ~strcmpi('exedges', edget)
@@ -156,13 +164,15 @@ end
 
 %% Edge map extraction
 % Prepare outputs
-coords = [];
+coords = uint16([]);
 strengths = [];
 rs = uint16([]);
 thetas = [];
 relcencart = [];
 relcenpol = [];
 imids = uint8([]);
+cellids = uint16([]);
+edgetypes = logical([]);
 % Extract
 for id = imid
 
@@ -170,7 +180,6 @@ for id = imid
 	fprintf('Start extracting edgels from [%02d] / [%02d] ... ', id, numel(imid));
 
 	% Prepare input options
-	options = struct;
 	options.outputstruct = true;
 
 	% Masks
@@ -204,6 +213,12 @@ for id = imid
 		relcencart = [relcencart; edgels.relcencart]; %#ok<AGROW>
 		relcenpol = [relcenpol; edgels.relcenpol]; %#ok<AGROW>
 		imids = [imids; ones(numel(edgels.rs), 1) * id]; %#ok<AGROW>
+		cellids = [cellids; edgels.cellids]; %#ok<AGROW>
+		if strcmpi('edges', edget)
+			edgetypes = [edgetypes; true(numel(edgels.rs), 1)]; %#ok<AGROW>
+		else
+			edgetypes = [edgetypes; false(numel(edgels.rs), 1)]; %#ok<AGROW>
+		end
 	end
 	
 	% Print states
@@ -220,5 +235,7 @@ if outputstruct
 	output.relcenpol = relcenpol;
 	output.r = r;
 	output.imids = imids;
+	output.cellids = cellids;
+	output.edgetypes = edgetypes;
 	coords = output;
 end
