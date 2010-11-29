@@ -92,12 +92,19 @@ if (iscell(f))
     end
 else
     %fim = imfilter(im, f, boundary, output, do_fcn);
+	
 	sizef = size(f);
+	sizeim = size(im);
 	halfsizef = floor(sizef / 2);
-	startlocation = location - halfsizef;
-	endlocation = location + halfsizef;
-	impatch = im(startlocation(1):endlocation(1), ...
-		startlocation(2):endlocation(2));
+	startimloc = location - halfsizef;
+	startpatchloc = -min(startimloc, [1,1]) + 2;
+	startimloc = max(startimloc, [1,1]);
+	endimloc = location + halfsizef;
+	endimloc = min(endimloc, sizeim);
+	endpatchloc = startpatchloc + (endimloc - startimloc);
+	impatch = zeros(sizef);
+	impatch(startpatchloc(1):endpatchloc(1), startpatchloc(2):endpatchloc(2)) = ...
+		im(startimloc(1):endimloc(1), startimloc(2):endimloc(2));
 	fim = impatch .* f;
 	v = sum(fim(:));
 end

@@ -14,9 +14,12 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %
 % INPUT
 %	OPTIONS		- If only one struct argument is specified, all following
-%	arguments are provided as the fields of OPTIONS.
-%	Note: Add field 'outputstruct' to the OPTIONS and set it to true to output
+%	arguments can be provided as the fields of OPTIONS.
+%	Note: 
+%	1. Add field 'outputstruct' to the OPTIONS and set it to true to output
 %	struct.
+%	2. All field names of OPTIONS should be in lower case. Upper case are only
+%	used for demonstration in documents. 
 %
 %	EDGEMAP		- Edge map or maps from which we want to extract the edgel.
 %		EDGEMAP can be a single BW image, where 1 indicates a edge pixel.
