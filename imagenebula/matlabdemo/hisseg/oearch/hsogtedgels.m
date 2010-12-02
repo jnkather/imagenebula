@@ -187,18 +187,19 @@ for id = imid
 	options.outputstruct = true;
 
 	% Masks
-	masks = hsreadimage(id, 'masks', imregion);
-	options.centroids = bwcentroid(masks);
+	options.masks = hsreadimage(id, 'masks', imregion);
+	options.centroids = bwcentroid(options.masks);
 	clear masks;
 	
 	% OE Filter strength
 	fresult = hsoreadfresult(id, imtype, imregion, sigma, s, support, ntheta, ...
 		derivative, hilbert, false);
 
-	% Strenght, radius and theta
+	% Strenght, radius and theta, and kernel
 	options.imstrength = fresult.maxfim;
 	options.imr = uint32(fresult.imaxr);
 	options.imtheta = fresult.immaxtheta;
+	options.kernels = fresult.kernels;
 	r = fresult.kernels.r;
 	clear fresult;
 	

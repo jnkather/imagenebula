@@ -62,6 +62,10 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %	[ONLYSALIENT]	- Extract only salient edgels. Salient edgels are groundtruth 
 %		edge points which passed the non-maximum suppression step.
 %
+%	[CHECKTHETADIFF]	- Check difference between theta of gradient and theta
+%		of mask filter response.
+%
+%
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a
 %		edgel.
@@ -153,6 +157,16 @@ if (nargin == 1) && isstruct(edgemap)
 	
 	if isfield(options, 'onlysalient'), onlysalient = options.onlysalient;
 	else onlysalient = true; end;
+	
+	if isfield(options, 'checkthetadiff'), checkthetadiff = options.checkthetadiff;
+	else checkthetadiff = false; end;
+	
+	if isfield(options, 'masks'), masks = options.masks;
+	else masks = []; end;
+	
+	if isfield(options, 'kernels'), kernels = options.kernels;
+	else kernels = []; end;
+	
 else
 	% Arugment input
 	inputstruct = false;
@@ -166,6 +180,9 @@ else
 	xrange = [];
 	yrange = [];
 	onlysalient = false;
+	checkthetadiff = false;
+	masks = [];
+	kernels = [];
 end
 
 %% Argument processing
@@ -222,6 +239,7 @@ cols = uint16([]);		% Col index of the edgel
 inds = uint32([]);		% Index of the edgel
 cencoords = [];			% Centroid coordinates corresponding to the edgel
 cellids = uint16([]);	% Index of the cell which the edgel belongs to 
+
 % Extract edgels from edgemaps
 for i = 1 : numel(edgemap)
 	% Extract edgels from a single cell
@@ -329,14 +347,23 @@ if ~isempty(yrange)
 end
 
 % Remove non-salient edgels
+svi = false(nedgels, 1);
 if onlysalient
 	meanstrength = mean(imstrength(:));
 	nmsstrength = nonmaxsup(imstrength, imtheta, 1.5);
 	svi = (nmsstrength(inds) < meanstrength);
 end
 
+% Check theta difference
+tdvi = false(nedgels, 1);
+if checkthetadiff
+	[thetadiff, rdiff] = hsogtedgelsdiff(...
+	coords, cellids, thetas, rs, masks, kernels);
+	tdvi = (thetadiff >= pi/6);
+end
+
 % Index of edgels violating range rules
-vi = thetavi | rhovi | xvi | yvi | svi;
+vi = thetavi | rhovi | xvi | yvi | svi | tdvi;
 
 % Remove edgels violating range rules
 coords(vi, :) = [];
