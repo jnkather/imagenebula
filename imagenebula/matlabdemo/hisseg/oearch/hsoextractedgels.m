@@ -161,11 +161,26 @@ if (nargin == 1) && isstruct(edgemap)
 	if isfield(options, 'checkthetadiff'), checkthetadiff = options.checkthetadiff;
 	else checkthetadiff = false; end;
 	
+	if isfield(options, 'checkrdiff'), checkrdiff = options.checkrdiff;
+	else checkrdiff = false; end;
+	
 	if isfield(options, 'masks'), masks = options.masks;
 	else masks = []; end;
 	
 	if isfield(options, 'kernels'), kernels = options.kernels;
 	else kernels = []; end;
+	
+	if isfield(options, 'maxthetadiff'), maxthetadiff = options.maxthetadiff;
+	else maxthetadiff = pi/6; end;
+	
+	if isfield(options, 'maxithetadiff'), maxithetadiff = options.maxithetadiff;
+	else maxithetadiff = 4; end;
+	
+	if isfield(options, 'maxrdiff'), maxrdiff = options.maxrdiff;
+	else maxrdiff = inf; end;
+	
+	if isfield(options, 'maxirdiff'), maxirdiff = options.maxirdiff;
+	else maxirdiff = 5; end;
 	
 else
 	% Arugment input
@@ -181,8 +196,13 @@ else
 	yrange = [];
 	onlysalient = false;
 	checkthetadiff = false;
+	checkrdiff = false;
 	masks = [];
 	kernels = [];
+	maxthetadiff = pi/6;
+	maxithetadiff = 4;
+	maxrdiff = inf;
+	maxirdiff = 5;
 end
 
 %% Argument processing
@@ -356,14 +376,25 @@ end
 
 % Check theta difference
 tdvi = false(nedgels, 1);
-if checkthetadiff
-	[thetadiff, rdiff] = hsogtedgelsdiff(...
+rdvi = false(nedgels, 1);
+if checkthetadiff || checkrdiff
+	% Calculate theta and radius difference
+	[thetadiff, rdiff, ithetadiff, irdiff] = hsogtedgelsdiff(...
 	coords, cellids, thetas, rs, masks, kernels);
-	tdvi = (thetadiff >= pi/6);
+
+	% Check theta difference
+	if checkthetadiff
+		tdvi = ((thetadiff > maxthetadiff) | (ithetadiff > maxithetadiff));
+	end
+	
+	% Check radius difference
+	if checkrdiff
+		rdvi = ((rdiff > maxrdiff) | (irdiff > maxirdiff));
+	end
 end
 
 % Index of edgels violating range rules
-vi = thetavi | rhovi | xvi | yvi | svi | tdvi;
+vi = thetavi | rhovi | xvi | yvi | svi | tdvi | rdvi;
 
 % Remove edgels violating range rules
 coords(vi, :) = [];
