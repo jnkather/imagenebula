@@ -84,15 +84,20 @@ function [v] = filterapplysp(im, f, location, varargin)
 %% Parse options
 [boundary, output, do_fcn] = parse_options(varargin);
 
+%% Prepare parameters
+if size(location, 2) <= 1
+	[location(:, 1), location(:, 2)] = ind2sub(size(im), location);
+end
+
 %% Filtering the image
-if (iscell(f))
+if iscell(f) && size(location, 2) ==1
+	% Multiple kernels and only one location
     v = zeros(size(f));
     for i = 1 : numel(f)
         v(i) = filterapplysp(im, f{i}, location, boundary, output, do_fcn);
-    end
-else
-    %fim = imfilter(im, f, boundary, output, do_fcn);
-	
+	end
+elseif ~iscell(f) && size(location, 2) == 1
+	% Single kernel and single location
 	sizef = size(f);
 	sizeim = size(im);
 	halfsizef = floor(sizef / 2);
@@ -107,6 +112,34 @@ else
 		im(startimloc(1):endimloc(1), startimloc(2):endimloc(2));
 	fim = impatch .* f;
 	v = sum(fim(:));
+elseif ~iscell(f) && size(location, 2) > 1
+	% Single kernel but multiple location
+	nloc = size(location, 1);
+	sizef = ones(nloc, 1) * size(f);
+	sizeim = ones(nloc, 1) * size(im);
+	halfsizef = floor(sizef / 2);
+	startimloc = double(location) - halfsizef;
+	startpatchloc = -min(startimloc, ones(nloc, 1) * [1,1]) + 2;
+	startimloc = max(startimloc, ones(nloc, 1) * [1,1]);
+	endimloc = double(location) + halfsizef;
+	endimloc = min(endimloc, sizeim);
+	endpatchloc = startpatchloc + (endimloc - startimloc);
+	v = zeros(nloc, 1);
+	for iloc = 1 : nloc
+		impatch = zeros(size(f));
+		impatch(startpatchloc(iloc, 1) : endpatchloc(iloc, 1), ...
+				startpatchloc(iloc, 2) : endpatchloc(iloc, 2)) = ...
+			im(startimloc(iloc, 1) : endimloc(iloc, 1), ...
+				startimloc(iloc, 2) : endimloc(iloc, 2));
+		fim = impatch .* f;
+		v(iloc) = sum(fim(:));
+	end
+else
+	% Multiple kernel and multiple location
+	v = cell(size(f));
+	for ik = 1 : numel(f)
+		v{ik} = filterapplysp(im, f{ik}, location, boundary, output, do_fcn);
+	end
 end
 
 
