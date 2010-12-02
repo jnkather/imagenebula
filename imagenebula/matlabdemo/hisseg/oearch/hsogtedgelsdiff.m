@@ -69,21 +69,29 @@ nmasks = numel(masks);
 %% Calculate the difference
 thetadiff = zeros(nedgels, 1);
 rdiff = zeros(nedgels, 1);
+ithetadiff = uint16(zeros(nedgels, 1));
+irdiff = uint16(zeros(nedgels, 1));
+fprintf('Check Diff %d: ', nmasks);
 for imask = 1 : nmasks
+	fprintf('%d ', imask);
 	mmask = (cellids == imask);
 	mthetas = thetas(mmask);
 	mrs = rs(mmask);
 	mcoords = edgecoords(mmask);
-	[mthetadiff, mrdiff] = edgeldiff(...
+	[mthetadiff, mrdiff, mithetadiff, mirdiff] = edgeldiff(...
 		mcoords, masks{imask}, mthetas, mrs, kernels);
 	thetadiff(mmask) = mthetadiff;
 	rdiff(mmask) = mrdiff;
+	ithetadiff(mmask) = mithetadiff;
+	irdiff(mmask) = mirdiff;
 end
+fprintf('Done\n');
 
 
 
 %%******************************************************************************
-function [thetadiff, rdiff] = edgeldiff(coords, mask, thetas, rs, kernels)
+function [thetadiff, rdiff, ithetadiff, irdiff] = edgeldiff(...
+	coords, mask, thetas, rs, kernels)
 %Calculate the theta and radius difference for a single cell.
 	% Convert to pseudo-intensity image
 	im = mask2intensity(mask);
@@ -91,19 +99,42 @@ function [thetadiff, rdiff] = edgeldiff(coords, mask, thetas, rs, kernels)
 	% Check each edgels
 	v = filterapplysp(-im, kernels.f, coords);
 	
-	% Find maximum response
-	[maxv, imaxv] = cellmax(v, 'mat');
+	% Find maximum response of mask filter response
+	[~, imaxv] = cellmax(v, 'mat');
 	[imaxtheta, imaxr] = ind2sub(size(v), imaxv);
 	maxthetas = kernels.theta(imaxtheta);
 	maxrs = kernels.r(imaxr); 
 
+	% Maximum response of intensity filter response
+	calithetadiff = false;
+	if isa(thetas, 'integer')
+		calithetadiff = true;
+		ithetas = thetas;
+		thetas = kernels.theta(ithetas);
+	end
+	
+	calirdiff = false;
+	if isa(rs, 'integer')
+		calirdiff = true;
+		irs = rs;
+		rs = kernels.r(irs);
+	end
+	
 	% Differences of theta
 	thetadiff = abs(maxthetas(:) - thetas(:));
 	thetadiff = min(thetadiff, abs(2*pi-thetadiff));
+	ithetadiff = uint16(zeros(numel(thetas), 1));
+	if calithetadiff
+		ithetadiff = abs(int16(imaxtheta(:)) - int16(ithetas));
+		ithetadiff = min(ithetadiff, abs(kernels.ntheta - ithetadiff));
+	end
 	
 	% Differences of r
-	nrs = kernels.r(rs(:));
-	rdiff = abs(maxrs(:) - nrs(:));
+	rdiff = abs(maxrs(:) - rs(:));
+	irdiff = uint16(zeros(numel(thetas), 1));
+	if calirdiff
+		irdiff = abs(int16(imaxr) - int16(irs));
+	end
 	
 
 
