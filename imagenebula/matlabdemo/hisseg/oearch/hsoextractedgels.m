@@ -65,6 +65,28 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol] = ...
 %	[CHECKTHETADIFF]	- Check difference between theta of gradient and theta
 %		of mask filter response.
 %
+%	[CHECKRDIFF]	- Check differnce between radius of intensity filter
+%		response and theta of mask filter response.
+%
+%	[MASKS]			- Masks of cells. If CHECKTHETADIFF or CHECKRDIFF is on,
+%		the MASKS should be specified.
+%
+%	[KERNELS]		- Struct representing the kernels used to filter the image
+%		and mask. If CHECKTHETADIFF or CHECKRDIFF is on, the KERNELS should be
+%		specified.
+%
+%	[MAXTHETADIFF]	- Maximal theta difference. If CHECKTHETADIFF is on, the
+%		theta differences of output edgels should not exceed this value.
+%
+%	[MAXITHETADIFF] - Maximal index difference of theta. If CHECKTHETADIFF is
+%		on, the index difference of theta should not exceed this value.
+%
+%	[MAXRDIFF]		- Maximal radius difference. If CHECKRDIFF is on, the radius
+%		differences of output edgels should not exceed this value.
+%
+%	[MAXIRDIFF]		- Maximal index difference of radius. If CHECKRDIFF is on,
+%		the index differences of radius should not exceed this value.
+%
 %
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a
@@ -180,7 +202,7 @@ if (nargin == 1) && isstruct(edgemap)
 	else maxrdiff = inf; end;
 	
 	if isfield(options, 'maxirdiff'), maxirdiff = options.maxirdiff;
-	else maxirdiff = 5; end;
+	else maxirdiff = 50; end;
 	
 else
 	% Arugment input
@@ -202,7 +224,7 @@ else
 	maxthetadiff = pi/6;
 	maxithetadiff = 4;
 	maxrdiff = inf;
-	maxirdiff = 5;
+	maxirdiff = 50;
 end
 
 %% Argument processing
@@ -246,6 +268,12 @@ if nargin >= 5
 		error('hsoextractedgels:CentroidsNumberError', ...
 			'Centroids number does not equal to the number of edges!');		
 	end
+end
+
+% If checkthetadiff or checkrdiff is on, masks and kernels should be specified
+if (checkthetadiff || checkrdiff) && (isempty(masks) || isempty(kernels))
+	error('hsoextractedgels:InputArgumentError', ...
+		'If CHECKTHETADIFF or CHECKRDIFF is on, MASKS and KERNELS should be specified!');
 end
 
 
