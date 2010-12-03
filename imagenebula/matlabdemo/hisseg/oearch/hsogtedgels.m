@@ -53,9 +53,43 @@ function [coords, strengths, rs, thetas, relcencart, relcenpol, r, imids, cellid
 %
 %	[CHECKEDGELS]	- Set to true if you want the function check edgels.
 %
+%	[THETARANGE]	- 2-element vector, specifying the maximum and minimum theta 
+%		value of valid edgels. There is no order restriction on the elements of
+%		the vector, that is, the maximum will be the upper bound and the minimum
+%		element will be the lower bound.
+%		Note: this argument can only be specified as a field of OPTIONS.
+%
+%	[RHORANGE]		- 2-element vector, specifying the maximum and minimum rho
+%		value of valid edgels. See notes on THETARANGE.
+%
+%	[XRANGE]		- 2-element vector, specifying the maximum and minimum x
+%		value of valid edgels. See notes on THETARANGE.
+%
+%	[YRANGE]		- 2-element vector, specifying the maximum and minimum y
+%		value of valid edgels. See notes on THETARANGE.
+%
 %	[ONLYSALIENT]	- Set to true to extract only salient edgels.
 %		Salient edgels are edge points which pass the non-maximum suppression
 %		step.
+%
+%	[CHECKTHETADIFF]	- Check difference between theta of gradient and theta
+%		of mask filter response.
+%
+%	[CHECKRDIFF]	- Check differnce between radius of intensity filter
+%		response and theta of mask filter response.
+%
+%	[MAXTHETADIFF]	- Maximal theta difference. If CHECKTHETADIFF is on, the
+%		theta differences of output edgels should not exceed this value.
+%
+%	[MAXITHETADIFF] - Maximal index difference of theta. If CHECKTHETADIFF is
+%		on, the index difference of theta should not exceed this value.
+%
+%	[MAXRDIFF]		- Maximal radius difference. If CHECKRDIFF is on, the radius
+%		differences of output edgels should not exceed this value.
+%
+%	[MAXIRDIFF]		- Maximal index difference of radius. If CHECKRDIFF is on,
+%		the index differences of radius should not exceed this value.
+%
 %
 % OUTPUT
 %	COORDS		- Cartesian coordinates of the edgels. Each row represents a

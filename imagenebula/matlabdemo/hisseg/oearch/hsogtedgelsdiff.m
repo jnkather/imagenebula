@@ -3,7 +3,40 @@ function [thetadiff, rdiff, ithetadiff, irdiff] = hsogtedgelsdiff(...
 %HSOGTEDGELSDIFF calculate the difference of thetas and radius between intensity
 % image filter response and cell mask filter response.
 %
-% [THETADIFF, RDIFF] = HSOGTEDGELSDIFF(EDGECOORDS, CELLIDS, THETAS, RS, MASKS, KERNELS)
+% [THETADIFF, RDIFF, ITHETADIFF, IRDIFF] = HSOGTEDGELSDIFF(...
+%	EDGECOORDS, CELLIDS, THETAS, RS, MASKS, KERNELS)
+%
+% INPUT
+%	EDGECOORDS	- Coordinates of the edgels. This can be a column vector, each 
+%		row of which represents a edgel index into the image; or a n-by-2
+%		matrix, each row of which reprensents edgel coordinates into the image.
+%
+%	CELLIDS		- The column vector of ids of cells which the edgels belong to.
+%
+%	THETAS		- The column vector of orientations of edgels, calculated from
+%		the intensity image.
+%
+%	RS			- The column vector of radius of edgels, calculated from the
+%		intensity image.
+%	
+%	MASKS		- Cell of masks, each element of which is a mask for a single
+%		cell.
+%
+%	KERNELS		- Struct containing information about the filter kernel.
+%
+%
+% OUTPUT
+%	THETADIFF	- The column vector of differences between the theta of the
+%		intensity filter response and the mask filter response.
+%
+%	RDIFF		- The column vector of differences between the radius of the 
+%		intensity filter response and the mask filter response.
+%
+%	ITHETADIFF	- The column vector of indices differences between the thetas of
+%		the intensity filter response and the mask filter response.
+%
+%	IRDIFF		- The volumn vector of indices differences between the radius of
+%		the intensity filter response and the mask filter response.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
